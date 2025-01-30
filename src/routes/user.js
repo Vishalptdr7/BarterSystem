@@ -2,7 +2,7 @@ import { Router } from "express";
 
 // Import controllers
 import {
-  register
+  register,login,verifyOTP,logout,forgotPassword,
   
 } from "../controllers/user.js";
 import { upload } from "../middlewares/multer.js";
@@ -15,15 +15,24 @@ const router = Router();
 router.route("/register").post(register);
 
 // // User login route
-// router.route("/users/login").post(login);
+router.route("/verifyOTP").post(verifyOTP);
+// User Login Route
+router.route("/login").post(login);
 
-// // Get user details - Requires authentication
-// router.route("/users/me").get(verifyJWT, getUserDetails);
+//user logout 
+router.route("/test").get(async (req, res) => {
+  const token = req.headers["authorization"]?.replace("Bearer ", "");
+  if (!token) {
+    return res.status(400).json({ message: "No token provided" });
+  }
 
-// // Update user details - Requires authentication
-// router.route("/users/me").put(verifyJWT, updateUser);
+  try {
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    res.status(200).json({ message: "Token verified", decoded });
+  } catch (error) {
+    res.status(401).json({ message: "Invalid token", error: error.message });
+  }
+});
 
-// // Delete user account - Requires authentication
-// router.route("/users/me").delete(verifyJWT, deleteUser);
-
+router.route("/logout").post(verifyJWT, logout);
 export default router;

@@ -3,11 +3,14 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 const app=express();
-app.use(cors({
-    origin: process.env.CORS_ORIGIN,
-    credentials: true
-}));
 
+
+app.use(
+  cors({
+    origin: "http://your-frontend-domain.com", // Replace with your frontend domain
+    credentials: true, // This ensures cookies are sent with the request
+  })
+);
 app.use(cookieParser({
 
 }));

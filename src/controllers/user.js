@@ -34,45 +34,53 @@ const sendOTP = async (email, otp) => {
     throw new ApiError(500, "Failed to send OTP email");
   }
 };
+// Generate access token and refreshtoken
 
-// Generate access token and refresh token for a user
 const generateAccessTokenAndRefreshToken = async (userId) => {
   try {
+    console.log("Generating tokens for User ID:", userId);
+
     // Fetch user from MySQL
-    const [users] = await db.execute("SELECT * FROM users WHERE id = ?", [
+    const [users] = await db.execute("SELECT * FROM users WHERE user_id = ?", [
       userId,
     ]);
 
     if (users.length === 0) {
-      throw new ApiError(404, "User Not Found!");
+      console.log("User not found");
+      throw new Error("User Not Found!");
     }
 
     const user = users[0];
 
     // Generate tokens
     const accessToken = jwt.sign(
-      { id: user.id },
+      { id: user.user_id },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "15m" }
     );
 
     const refreshToken = jwt.sign(
-      { id: user.id },
+      { id: user.user_id },
       process.env.REFRESH_TOKEN_SECRET,
       { expiresIn: "7d" }
     );
 
+    console.log("Generated Access Token:", accessToken);
+    console.log("Generated Refresh Token:", refreshToken);
+
     // Update refresh token in database
-    await db.execute("UPDATE users SET refreshToken = ? WHERE id = ?", [
+    await db.execute("UPDATE users SET refreshToken = ? WHERE user_id = ?", [
       refreshToken,
-      user.id,
+      user.user_id,
     ]);
 
     return { accessToken, refreshToken };
   } catch (error) {
-    throw new ApiError(500, "Error generating tokens");
+    console.error("Error generating tokens:", error);
+    throw error;
   }
 };
+
 
 // ✅ Register Function
 export const register = async (req, res) => {
@@ -117,14 +125,24 @@ export const register = async (req, res) => {
 export const verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
+    console.log("Received OTP:", otp); // Debugging
 
     const [user] = await db.execute("SELECT * FROM users WHERE email = ?", [
       email,
     ]);
+
     if (user.length === 0)
       return res.status(404).json({ message: "User not found" });
 
     const { otp: storedOTP, otp_expires } = user[0];
+
+    console.log("Stored OTP:", storedOTP); // Debugging
+
+    if (!storedOTP) {
+      return res
+        .status(400)
+        .json({ message: "No OTP found. Request a new one." });
+    }
 
     if (new Date() > new Date(otp_expires)) {
       return res
@@ -132,7 +150,7 @@ export const verifyOTP = async (req, res) => {
         .json({ message: "OTP expired. Request a new one." });
     }
 
-    if (storedOTP !== parseInt(otp)) {
+    if (storedOTP.trim() !== otp.trim()) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
 
@@ -143,11 +161,15 @@ export const verifyOTP = async (req, res) => {
 
     res.status(200).json({ message: "Email verified successfully" });
   } catch (error) {
+    console.error("Error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
 
+
+
 // ✅ Login Function
+
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -155,41 +177,88 @@ export const login = async (req, res) => {
     const [user] = await db.execute("SELECT * FROM users WHERE email = ?", [
       email,
     ]);
-    if (user.length === 0)
+
+    if (user.length === 0) {
       return res.status(404).json({ message: "Invalid email or password" });
+    }
 
-    const { id, name, password: hashedPassword, verified } = user[0];
+    console.log("User found:", user[0]); // Debug user object
 
-    if (!verified)
+    const { user_id, name, password: hashedPassword, verified } = user[0];
+
+    if (!verified) {
       return res
         .status(403)
         .json({ message: "Verify your email before logging in" });
+    }
 
     const isMatch = await bcrypt.compare(password, hashedPassword);
-    if (!isMatch)
+    if (!isMatch) {
       return res.status(401).json({ message: "Invalid email or password" });
+    }
 
-    const token = jwt.sign({ id, name, email }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
+    console.log("User ID from database:", user_id); // Debug ID before token generation
+
+    const { accessToken, refreshToken } =
+      await generateAccessTokenAndRefreshToken(user_id);
+
+    console.log("Generated Tokens:", accessToken, refreshToken); // Debugging
+
+    // Store refresh token in DB
+    await db.execute("UPDATE users SET refreshToken = ? WHERE user_id = ?", [
+      refreshToken,
+      user_id,
+    ]);
+
+    // Send response
+    res.status(200).json({
+      message: "Login successful",
+      token: accessToken,
+      refreshToken,
     });
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "Strict",
-    });
-
-    res.status(200).json({ message: "Login successful", token });
   } catch (error) {
+    console.error("Login error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
 
+
 // ✅ Logout Function
-export const logout = (req, res) => {
-  res.clearCookie("token");
-  res.status(200).json({ message: "Logged out successfully" });
-};
+export const logout = asyncHandler(async (req, res) => {
+  const userId = await req.user.id; // Extract user ID from the request (populated by verifyJWT)
+
+  try {
+    // Remove the access_token and refresh_token from the database
+    const [result] = await pool.query(
+      "UPDATE users SET access_token = NULL, refresh_token = NULL WHERE id = ?",
+      [userId]
+    );
+
+    // Check if the update was successful
+    if (result.affectedRows === 0) {
+      throw new ApiError(404, "User not found or already logged out");
+    }
+
+    // Clear cookies by setting options for secure cookies
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Ensure cookies are secure in production
+      sameSite: "Strict",
+    };
+
+    // Clear the cookies from the response
+    res
+      .status(200)
+      .clearCookie("accessToken", cookieOptions)
+      .clearCookie("refreshToken", cookieOptions)
+      .json({ message: "User logged out successfully" });
+  } catch (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
 
 // ✅ Forgot Password (Send OTP for Reset)
 export const forgotPassword = async (req, res) => {
@@ -252,6 +321,7 @@ export const resetPassword = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 export const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken =
     req.cookies.refreshToken || req.body.refreshToken;
