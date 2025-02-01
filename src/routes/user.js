@@ -35,29 +35,13 @@ export default router;
 
  router.route("/deleteUser/:id").post(verifyJWT,deleteUser);
 
-//  router.route("/editProfile").put(
-//    verifyJWT,
-//    upload.fields([
-//      {
-//        name: "profile_pic", // Make sure this matches `req.files.profile_pic`
-//        maxCount: 1,
-//      },
-//    ]),
-//    editProfile
-//  );
-router.route("/editProfile").put(
-  verifyJWT,
-  (req, res, next) => {
-    // Store user_id before multer modifies req
-    res.locals.user = req.user;
-    next();
-  },
-  upload.fields([{ name: "profile_pic", maxCount: 1 }]),
-  (req, res, next) => {
-    // Restore user_id after multer modifies req
-    req.user = res.locals.user;
-    next();
-  },
-  editProfile
-);
-
+ router.route("/editProfile").put(
+   verifyJWT,
+   upload.fields([
+     {
+       name: "profile_pic", // Make sure this matches `req.files.profile_pic`
+       maxCount: 1,
+     },
+   ]),
+   editProfile
+ );
