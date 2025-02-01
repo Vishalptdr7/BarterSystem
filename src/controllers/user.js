@@ -1,12 +1,13 @@
 import bcrypt from "bcryptjs";
 import { asyncHandler } from "../utils/asyncHandler.js";
-
+import pool from "../db/db.js";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import db from "../db/db.js"; // MySQL Database Connection
 import { ApiError } from "../utils/ApiErrors.js";
 import {ApiResponse} from "../utils/ApiResponse.js"; // Assuming ApiResponse is created for better structure
+import { uploadfileOnCloudinary } from "../utils/cloudinary.js";
 
 dotenv.config();
 
@@ -172,91 +173,175 @@ export const verifyOTP = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { username, email, password } = req.body;
 
-    const [user] = await db.execute("SELECT * FROM users WHERE email = ?", [
-      email,
-    ]);
-
-    if (user.length === 0) {
-      return res.status(404).json({ message: "Invalid email or password" });
+    // Validate that at least one of email or username is provided
+    if (!username && !email) {
+      return res.status(400).json({
+        statusCode: 400,
+        success: false,
+        data: null,
+        errors: ["Username or email is required"],
+      });
     }
 
-    console.log("User found:", user[0]); // Debug user object
+    // Prepare the query parameters
+    const queryParams = [];
+    let queryString = "SELECT * FROM users WHERE";
+
+    if (email) {
+      queryString += " email = ?";
+      queryParams.push(email);
+    }
+
+    if (username) {
+      if (email) {
+        queryString += " OR";
+      }
+      queryString += " username = ?";
+      queryParams.push(username);
+    }
+
+    // Query to find the user by either email or username
+    const [user] = await db.execute(queryString, queryParams);
+
+    // Check if user exists
+    if (user.length === 0) {
+      return res.status(401).json({
+        statusCode: 401,
+        success: false,
+        data: null,
+        errors: ["User not found"],
+      });
+    }
 
     const { user_id, name, password: hashedPassword, verified } = user[0];
 
+    // Check if the user's email is verified
     if (!verified) {
-      return res
-        .status(403)
-        .json({ message: "Verify your email before logging in" });
+      return res.status(403).json({
+        statusCode: 403,
+        success: false,
+        data: null,
+        errors: ["Verify your email before logging in"],
+      });
     }
 
-    const isMatch = await bcrypt.compare(password, hashedPassword);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid email or password" });
+    // Compare the provided password with the hashed password
+    const isPasswordValid = await bcrypt.compare(password, hashedPassword);
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        statusCode: 401,
+        success: false,
+        data: null,
+        errors: ["Invalid credentials"],
+      });
     }
 
-    console.log("User ID from database:", user_id); // Debug ID before token generation
-
+    // Generate access and refresh tokens
     const { accessToken, refreshToken } =
       await generateAccessTokenAndRefreshToken(user_id);
 
-    console.log("Generated Tokens:", accessToken, refreshToken); // Debugging
-
-    // Store refresh token in DB
+    // Update the refresh token in the database
     await db.execute("UPDATE users SET refreshToken = ? WHERE user_id = ?", [
       refreshToken,
       user_id,
     ]);
 
-    // Send response
-    res.status(200).json({
-      message: "Login successful",
-      token: accessToken,
-      refreshToken,
-    });
+    // Prepare the response object
+    const loggedUser = {
+      user_id,
+      name,
+      email: user[0].email, // Add other fields you want in the response
+    };
+
+    // Cookie options for tokens
+    const options = {
+      httpOnly: true,
+      secure: true, // Ensure this is set to true if you're using HTTPS
+    };
+
+    // Return the response with status 200, cookies, and formatted data
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json({
+        statusCode: 200,
+        success: true,
+        data: {
+          user: loggedUser,
+          refreshToken,
+          accessToken,
+          message: "Logged in successfully",
+        },
+        errors: [],
+      });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({
+      statusCode: 500,
+      success: false,
+      data: null,
+      errors: ["Server error"],
+    });
   }
 };
 
 
+
+
 // ✅ Logout Function
 export const logout = asyncHandler(async (req, res) => {
-  const userId = await req.user.id; // Extract user ID from the request (populated by verifyJWT)
-
   try {
-    // Remove the access_token and refresh_token from the database
-    const [result] = await pool.query(
-      "UPDATE users SET access_token = NULL, refresh_token = NULL WHERE id = ?",
-      [userId]
-    );
-
-    // Check if the update was successful
-    if (result.affectedRows === 0) {
-      throw new ApiError(404, "User not found or already logged out");
+    const user_id = req.user?.user_id;
+    if (!user_id) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized request" });
     }
 
-    // Clear cookies by setting options for secure cookies
-    const cookieOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Ensure cookies are secure in production
-      sameSite: "Strict",
-    };
+    // Remove the refresh_token from the database
+    const [result] = await pool.query(
+      "UPDATE users SET refreshToken = NULL WHERE user_id = ?",
+      [user_id]
+    );
 
-    // Clear the cookies from the response
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found or already logged out",
+      });
+    }
+
+    // Clear cookies
     res
       .status(200)
-      .clearCookie("accessToken", cookieOptions)
-      .clearCookie("refreshToken", cookieOptions)
-      .json({ message: "User logged out successfully" });
+      .clearCookie("accessToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "Strict",
+      })
+      .clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "Strict",
+      })
+      .json({ success: true, message: "User logged out successfully" });
   } catch (error) {
     console.error("Logout error:", error);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 });
+
+
+
+export const currentUser = asyncHandler(async (req, res) => {
+  return res
+    .status(200)
+    .json(new ApiResponse(), req.user, "User Find Successfully");
+});
+
 
 
 
@@ -299,13 +384,14 @@ export const resetPassword = async (req, res) => {
 
     const { otp: storedOTP, otp_expires } = user[0];
 
+    console.log((otp))
     if (new Date() > new Date(otp_expires)) {
       return res
         .status(400)
         .json({ message: "OTP expired. Request a new one." });
     }
-
-    if (storedOTP !== parseInt(otp)) {
+    console.log(typeof(storedOTP))
+    if (storedOTP != parseInt(otp)) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
 
@@ -322,6 +408,7 @@ export const resetPassword = async (req, res) => {
   }
 };
 
+// Generate Access and Refresh Tokens
 export const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken =
     req.cookies.refreshToken || req.body.refreshToken;
@@ -394,3 +481,96 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
 });
 
 
+export const deleteUser = asyncHandler(async (req, res) => {
+  try {
+    const user_id = req.params.id;
+    console.log("Deleting user with ID:", user_id); // Debugging
+
+    if (!user_id) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    const [result] = await db.execute("DELETE FROM users WHERE user_id=?", [
+      user_id,
+    ]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Delete user error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+export  const editProfile = asyncHandler(async (req, res) => {
+  try {
+    const user_id = req.user?.user_id; // Ensure this is properly extracted
+    if (!user_id) {
+      return res
+        .status(400)
+        .json({ message: "User ID is missing from request" });
+    }
+    console.log("Uploaded files:", req.files); // Log files to verify the upload
+
+    const { name, location, bio } = req.body;
+    let avtar = req.files?.profile_pic?.[0]?.path; // Check if file exists
+
+    let profile_pic = null;
+
+    // Upload image only if provided
+    if (avtar) {
+      profile_pic = await uploadfileOnCloudinary(avtar); // Upload the avatar to Cloudinary
+      if (!profile_pic) {
+        throw new ApiError(400, "Failed to upload avatar");
+      }
+    }
+
+    console.log("Profile Picture URL:", profile_pic?.url); // Debugging the profile_pic URL
+
+    // Check if any field is provided
+    if (!name && !location && !bio && !avtar) {
+      return res
+        .status(400)
+        .json({ message: "At least one field must be provided for update" });
+    }
+
+    // Prepare the profile_pic URL or null if not provided
+    const profile_pic_url = profile_pic ? profile_pic.url : null;
+
+    // Prepare SQL query
+    const query = `UPDATE users SET 
+                      name = COALESCE(?, name), 
+                      location = COALESCE(?, location), 
+                      bio = COALESCE(?, bio), 
+                      profile_pic = COALESCE(?, profile_pic),
+                      updated_at = CURRENT_TIMESTAMP
+                      WHERE user_id = ?`;
+
+    const values = [
+      name ?? null, // Convert undefined to null
+      location ?? null,
+      bio ?? null,
+      profile_pic_url, // Use the URL if the profile_pic was uploaded
+      user_id ?? null, // Ensure user_id is never undefined
+    ];
+
+    console.log("SQL Query Values:", values); // Debugging
+
+    // Execute the SQL query
+    const [result] = await db.execute(query, values);
+
+    // Check if the user was found and updated
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ message: "Profile updated successfully" });
+  } catch (error) {
+    console.error("Profile update error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});

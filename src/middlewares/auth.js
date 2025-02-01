@@ -18,7 +18,7 @@ import pool from "../db/db.js"; // Import MySQL connection pool
 
 //     // Fetch user from MySQL
 //     const [rows] = await pool.query(
-//       "SELECT id, username, role FROM users WHERE id = ?",
+//       "SELECT user_id, name, FROM users WHERE user_id = ?",
 //       [decodedToken.id]
 //     );
 
@@ -34,13 +34,11 @@ import pool from "../db/db.js"; // Import MySQL connection pool
 //     console.error("JWT Verification Error:", error.message);
 //     throw new ApiError(401, error.message);
 //   }
-// });
+//});
 const verifyJWT = asyncHandler(async (req, res, next) => {
   try {
-    // Try to get token from cookies first
     let token = req.cookies?.accessToken;
 
-    // If not found in cookies, look for it in the Authorization header
     if (!token) {
       const authHeader = req.header("Authorization");
       if (authHeader && authHeader.startsWith("Bearer ")) {
@@ -48,23 +46,26 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
       }
     }
 
-    console.log("Received token from cookies:", req.cookies?.accessToken); // Log cookie value
-    console.log(
-      "Received token from Authorization header:",
-      req.header("Authorization")
-    ); // Log header value
-    console.log("Final token extracted:", token); // Log final token
-
     if (!token) {
       throw new ApiError(401, "No token provided");
     }
+    console.log(token)
 
-    // Verify JWT token
-    const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    let decodedToken;
+    try {
+      decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    } catch (error) {
+      console.error("JWT Verification Error:", error.message);
+      throw new ApiError(401, "Invalid or expired token");
+    }
+
+    if (!decodedToken.id) {
+      throw new ApiError(401, "Invalid token payload, no user ID found");
+    }
 
     // Fetch user from MySQL
     const [rows] = await pool.query(
-      "SELECT id, username, role FROM users WHERE id = ?",
+      "SELECT user_id, name FROM users WHERE user_id = ?",
       [decodedToken.id]
     );
 
@@ -74,6 +75,7 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
 
     // Attach user data to the request object
     req.user = rows[0];
+    console.log("User data attached to request:", req.user); // Debug log
 
     next();
   } catch (error) {
@@ -81,7 +83,6 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
     throw new ApiError(401, error.message);
   }
 });
-
 
 
 
