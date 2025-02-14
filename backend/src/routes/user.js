@@ -5,10 +5,10 @@ import {
   register,login,verifyOTP,logout,forgotPassword,currentUser
   ,resetPassword,
   deleteUser,
-  editProfile
+  editProfile,
 } from "../controllers/user.js";
 import { upload } from "../middlewares/multer.js";
-import { verifyJWT } from "../middlewares/auth.js";
+import { verifyJWT, isAdmin, isUser } from "../middlewares/auth.js";
 
 // Routes
 const router = Router();
@@ -20,6 +20,14 @@ router.route("/register").post(register);
 router.route("/verifyOTP").post(verifyOTP);
 // User Login Route
 router.route("/login").post(login);
+
+router.get("/dashboard", verifyJWT, isUser, (req, res) => {
+  res.json({ message: "Welcome to the User Dashboard", user: req.user });
+});
+
+router.get("/admin-dashboard", verifyJWT, isAdmin, (req, res) => {
+  res.json({ message: "Welcome to the Admin Dashboard", user: req.user });
+});
 
 //user logout 
 router.route("/logout").post(verifyJWT, logout);
@@ -45,3 +53,9 @@ export default router;
    ]),
    editProfile
  );
+
+
+
+ import chatRouter from "./chat.js";
+ router.use("/chat", chatRouter);
+ 

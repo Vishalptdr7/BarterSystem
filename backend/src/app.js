@@ -21,4 +21,20 @@ import userRouter from "./routes/user.js";
 
 app.use("/api/users", userRouter);
 
+import skillRouter from "./routes/skill.js";
+import user_skillsRouter from "./routes/user_skills.js";
+
+app.use("/api/skill",skillRouter);
+
+
+app.use("/api/user_skill",user_skillsRouter)
+
+import { swapRouter } from "./routes/swap.js";
+
+app.use("/api/swap",swapRouter);
+
+
+import { reviewRouter } from "./routes/review.js";
+
+app.use("/api/review",reviewRouter);
 export {app};

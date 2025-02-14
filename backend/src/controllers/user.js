@@ -86,7 +86,7 @@ const generateAccessTokenAndRefreshToken = async (userId) => {
 // ✅ Register Function
 export const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password ,role} = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
@@ -98,7 +98,7 @@ export const register = async (req, res) => {
       [email]
     );
     if (existingUser.length > 0) {
-      return res.status(400).json({ message: "Email already registered" });
+      return res.status(400).json({ message: "User already registered" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -107,8 +107,8 @@ export const register = async (req, res) => {
 
     // Insert the user and OTP
     await db.execute(
-      "INSERT INTO users (name, email, password, otp, otp_expires) VALUES (?, ?, ?, ?, ?)",
-      [name, email, hashedPassword, otp, otpExpires]
+      "INSERT INTO users (name, email, password, otp, otp_expires,role) VALUES (?, ?, ?, ?, ?,?)",
+      [name, email, hashedPassword, otp, otpExpires,role ||"user"]
     );
 
     // Send OTP email
@@ -215,7 +215,7 @@ export const login = async (req, res) => {
       });
     }
 
-    const { user_id, name, password: hashedPassword, verified } = user[0];
+    const { user_id, name, password: hashedPassword, verified,role } = user[0];
 
     // Check if the user's email is verified
     if (!verified) {
@@ -271,6 +271,7 @@ export const login = async (req, res) => {
         success: true,
         data: {
           user: loggedUser,
+          role:role,
           refreshToken,
           accessToken,
           message: "Logged in successfully",

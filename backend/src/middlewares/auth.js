@@ -2,7 +2,6 @@ import { ApiError } from "../utils/ApiErrors.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
 import pool from "../db/db.js"; // Import MySQL connection pool
-
 // const verifyJWT = asyncHandler(async (req, res, next) => {
 //   try {
 //     const token =
@@ -49,7 +48,8 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
     if (!token) {
       throw new ApiError(401, "No token provided");
     }
-    console.log(token)
+
+    console.log("Token:", token);
 
     let decodedToken;
     try {
@@ -63,9 +63,9 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
       throw new ApiError(401, "Invalid token payload, no user ID found");
     }
 
-    // Fetch user from MySQL
+    // Fetch user from MySQL including `role`
     const [rows] = await pool.query(
-      "SELECT user_id, name FROM users WHERE user_id = ?",
+      "SELECT user_id, name, role FROM users WHERE user_id = ?",
       [decodedToken.id]
     );
 
@@ -75,7 +75,7 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
 
     // Attach user data to the request object
     req.user = rows[0];
-    console.log("User data attached to request:", req.user); // Debug log
+    console.log("User data attached to request:", req.user.user_id); // Debug log
 
     next();
   } catch (error) {
@@ -85,5 +85,21 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
 });
 
 
+const isAdmin = asyncHandler((req, res, next) => {
+  if ((req.user.role) !== 'admin') {
+    console.log("user is",req.user?.password);
+    return res.status(403).json({ message: "Access Forbidden. Admins only." });
+  }
+  
+  next();
+});
 
-export { verifyJWT };
+const isUser = (req, res, next) => {
+  if (req.user.role !== "user") {
+    return res.status(403).json({ message: "Access Forbidden. Users only." });
+  }
+  console.log(req.user.role)
+  next();
+};
+
+export { verifyJWT,isAdmin,isUser };
