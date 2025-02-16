@@ -1,13 +1,14 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-
+import bodyParser from "body-parser";
 const app=express();
-
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 app.use(
   cors({
-    origin: "http://your-frontend-domain.com", // Replace with your frontend domain
+    origin: "http://localhost:5173", // Replace with your frontend domain
     credentials: true, // This ensures cookies are sent with the request
   })
 );
@@ -37,4 +38,25 @@ app.use("/api/swap",swapRouter);
 import { reviewRouter } from "./routes/review.js";
 
 app.use("/api/review",reviewRouter);
+
+import chatRouter from "./routes/chat.js";
+
+app.use("/api/chat", chatRouter);
+
+
+import { messageRouter } from "./routes/message.js";
+
+app.use("/api/message", messageRouter);
+
+
+
+import { readMessageRouter } from "./routes/readMessage.js";
+
+app.use("/api/read_message", readMessageRouter);
+
+
+import { notificationRouter } from "./routes/notification.js";
+
+app.use("/api/notification", notificationRouter);
 export {app};
+

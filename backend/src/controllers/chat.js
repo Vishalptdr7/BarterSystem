@@ -1,7 +1,8 @@
 import db from "../db/db.js"; // Ensure database connection
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 // Start a chat between two users
-export const startChat = async (req, res) => {
+export const startChat = asyncHandler( async (req, res) => {
   try {
     const { user1_id, user2_id } = req.body;
 
@@ -20,10 +21,10 @@ export const startChat = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
-};
+});
 
 // Get all chats for a specific user
-export const getUserChats = async (req, res) => {
+export const getUserChats =asyncHandler( async (req, res) => {
   try {
     const { user_id } = req.params;
 
@@ -36,10 +37,10 @@ export const getUserChats = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
-};
+});
 
 // Get chat details by chat ID
-export const getChatDetails = async (req, res) => {
+export const getChatDetails =asyncHandler( async (req, res) => {
   try {
     const { chat_id } = req.params;
 
@@ -55,10 +56,11 @@ export const getChatDetails = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
-};
+});
 
 // Delete a chat by chat ID
-export const deleteChat = async (req, res) => {
+export const deleteChat =asyncHandler
+( async (req, res) => {
   try {
     const { chat_id } = req.params;
 
@@ -74,4 +76,4 @@ export const deleteChat = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
-};
+});
