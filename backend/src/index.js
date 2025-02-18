@@ -4,7 +4,7 @@ import dbconnect from "./db/index.js";
 dbconnect()
   .then(() => {
     console.log("Database Connected Successfully");
-    app.listen(process.env.PORT || 8000, () => {
+    app.listen(process.env.PORT || 8080, () => {
       console.log(`Server is running on port ${process.env.PORT}`);
     });
   })

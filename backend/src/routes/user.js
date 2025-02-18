@@ -17,7 +17,7 @@ const router = Router();
 router.route("/register").post(register);
 
 // // User login route
-router.route("/verifyOTP").post(verifyOTP);
+router.route("/verifyOtp").post(verifyOTP);
 // User Login Route
 router.route("/login").post(login);
 
@@ -56,6 +56,6 @@ export default router;
 
 
 
- import chatRouter from "./chat.js";
- router.use("/chat", chatRouter);
+//  import chatRouter from "./chat.js";
+//  router.use("/chat", chatRouter);
  

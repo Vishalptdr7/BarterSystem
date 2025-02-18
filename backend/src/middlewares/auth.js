@@ -49,7 +49,7 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
       throw new ApiError(401, "No token provided");
     }
 
-    console.log("Token:", token);
+    // console.log("Token:", token);
 
     let decodedToken;
     try {
@@ -63,9 +63,9 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
       throw new ApiError(401, "Invalid token payload, no user ID found");
     }
 
-    // Fetch user from MySQL including `role`
+    // Fetch user from MySQL including `role` and `email`
     const [rows] = await pool.query(
-      "SELECT user_id, name, role FROM users WHERE user_id = ?",
+      "SELECT * FROM users WHERE user_id = ?",
       [decodedToken.id]
     );
 
@@ -73,10 +73,9 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
       throw new ApiError(401, "User not found");
     }
 
-    // Attach user data to the request object
+    // Attach user data to the request object, including email
     req.user = rows[0];
-    console.log("User data attached to request:", req.user.user_id); // Debug log
-
+    console.log("user logout");
     next();
   } catch (error) {
     console.error("JWT Verification Error:", error.message);

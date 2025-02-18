@@ -155,12 +155,16 @@ export const verifyOTP = async (req, res) => {
       return res.status(400).json({ message: "Invalid OTP" });
     }
 
-    await db.execute(
+    const newUser=await db.execute(
       "UPDATE users SET otp = NULL, otp_expires = NULL, verified = 1 WHERE email = ?",
       [email]
     );
+return res.status(200).json({
+  success: true,
+  message: "Email verified successfully",
+  user: { email: user[0].email, verified: true }, // Return user data
+});
 
-    res.status(200).json({ message: "Email verified successfully" });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ message: "Server error" });
@@ -243,8 +247,9 @@ export const login = async (req, res) => {
       await generateAccessTokenAndRefreshToken(user_id);
 
     // Update the refresh token in the database
-    await db.execute("UPDATE users SET refreshToken = ? WHERE user_id = ?", [
+    await db.execute("UPDATE users SET refreshToken=?,accessToken=? WHERE user_id = ?", [
       refreshToken,
+     accessToken,
       user_id,
     ]);
 
@@ -338,10 +343,15 @@ export const logout = asyncHandler(async (req, res) => {
 
 
 export const currentUser = asyncHandler(async (req, res) => {
+  if (!req.user) {
+    return res.status(400).json({ message: "User not authenticated" });
+  }
+
   return res
     .status(200)
-    .json(new ApiResponse(), req.user, "User Find Successfully");
+    .json(new ApiResponse(200, req.user, "User Find Successfully"));
 });
+
 
 
 
