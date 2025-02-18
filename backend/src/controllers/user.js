@@ -126,7 +126,6 @@ export const register = async (req, res) => {
 export const verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
-    console.log("Received OTP:", otp); // Debugging
 
     const [user] = await db.execute("SELECT * FROM users WHERE email = ?", [
       email,
@@ -137,7 +136,6 @@ export const verifyOTP = async (req, res) => {
 
     const { otp: storedOTP, otp_expires } = user[0];
 
-    console.log("Stored OTP:", storedOTP); // Debugging
 
     if (!storedOTP) {
       return res

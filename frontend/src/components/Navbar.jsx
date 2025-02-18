@@ -16,8 +16,7 @@ const Navbar = () => {
               to="/"
               className="flex items-center gap-2.5 hover:opacity-80 transition-all"
             >
-              <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center">
-              </div>
+              <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center"></div>
               <h1 className="text-lg font-bold">BarterSystem</h1>
             </Link>
           </div>
@@ -36,7 +35,7 @@ const Navbar = () => {
 
             {authUser && (
               <>
-                <Link to={"/profile"} className={`btn btn-sm gap-2`}>
+                <Link to={"/editProfile"} className={`btn btn-sm gap-2`}>
                   <User className="size-5" />
                   <span className="hidden sm:inline">Profile</span>
                 </Link>

@@ -2,30 +2,22 @@ import { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore.js";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
-import { useEffect } from "react";
+
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login, isLoggingIn, authUser } = useAuthStore();
-  // useEffect(() => {
-  //   if (authUser) {
-      
-  //   }
-  // }, [authUser, navigate]);
-  
+  const { login, isLoggingIn } = useAuthStore();
+
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  
 
-  const handleSubmit =  (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-     login(formData);
-    navigate("/"); 
+    login(formData);
+    navigate("/");
   };
-
-  
 
   return (
     <div className="h-screen bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center p-8">
@@ -100,6 +92,16 @@ const LoginPage = () => {
               className="text-indigo-600 hover:text-indigo-700"
             >
               Create an account
+            </Link>
+          </p>
+
+          {/* Forgot Password Link */}
+          <p className="text-gray-500 text-sm mt-2">
+            <Link
+              to="/forgotPassword"
+              className="text-indigo-600 hover:text-indigo-700"
+            >
+              Forgot Password?
             </Link>
           </p>
         </div>

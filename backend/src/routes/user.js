@@ -37,9 +37,9 @@ export default router;
  router.route("/current").get(verifyJWT,currentUser);
 
 
- router.route("/forgotPassword").post(verifyJWT,forgotPassword)
+ router.route("/forgotPassword").post(forgotPassword)
 
- router.route("/resetPassword").post(verifyJWT,resetPassword);
+ router.route("/resetPassword").post(resetPassword);
 
  router.route("/deleteUser/:id").post(verifyJWT,deleteUser);
 

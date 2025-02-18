@@ -15,7 +15,6 @@ export const sendMessage = asyncHandler(async (req, res) => {
         .json({ message: "Chat ID and Sender ID are required" });
     }
 
-    console.log("Uploaded Image Path:", image);
 
     if (image) {
       try {
@@ -28,7 +27,6 @@ export const sendMessage = asyncHandler(async (req, res) => {
       }
     }
 
-    console.log("Cloudinary Image URL:", image_url);
 
     // Ensure at least one of `content` or `image_url` is present
     const messageContent = content && content.trim() !== "" ? content : null;
