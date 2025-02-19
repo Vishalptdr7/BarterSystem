@@ -6,6 +6,7 @@ import {
   ,resetPassword,
   deleteUser,
   editProfile,
+  resendOtp,
 } from "../controllers/user.js";
 import { upload } from "../middlewares/multer.js";
 import { verifyJWT, isAdmin, isUser } from "../middlewares/auth.js";
@@ -54,6 +55,8 @@ export default router;
    editProfile
  );
 
+
+router.route("/resendOtp").post(resendOtp);
 
 
 //  import chatRouter from "./chat.js";

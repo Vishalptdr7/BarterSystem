@@ -1,55 +1,86 @@
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore.js";
-import { LogOut, Settings, User } from "lucide-react";
+import { LogOut, Settings, User, Home } from "lucide-react";
 
 const Navbar = () => {
   const { logout, authUser } = useAuthStore();
+
   return (
-    <header
-      className="bg-base-100 border-b border-base-300 fixed w-full top-0 z-40 
-    backdrop-blur-lg bg-base-100/80"
-    >
-      <div className="container mx-auto px-4 h-16">
-        <div className="flex items-center justify-between h-full">
-          <div className="flex items-center gap-8">
-            <Link
-              to="/"
-              className="flex items-center gap-2.5 hover:opacity-80 transition-all"
-            >
-              <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center"></div>
-              <h1 className="text-lg font-bold">BarterSystem</h1>
-            </Link>
+    <header className="bg-white shadow-md fixed w-full top-0 z-50">
+      <div className="container mx-auto px-6 py-3 flex justify-between items-center">
+        {/* Left - Logo & Branding */}
+        <Link
+          to="/"
+          className="flex items-center gap-3 text-gray-800 hover:opacity-80 transition-all"
+        >
+          <div className="size-10 bg-indigo-500 text-white rounded-lg flex items-center justify-center font-bold text-lg">
+            B
           </div>
+          <h1 className="text-xl font-bold">BarterSystem</h1>
+        </Link>
 
-          <div className="flex items-center gap-2">
-            <Link
-              to={"/settings"}
-              className={`
-              btn btn-sm gap-2 transition-colors
-              
-              `}
-            >
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Settings</span>
-            </Link>
+        {/* Center - Navigation Links */}
+        <nav className="hidden md:flex items-center gap-6 text-gray-700">
+          <Link to="/" className="hover:text-indigo-600 transition">
+            Home
+          </Link>
+          
+          <Link to="/about" className="hover:text-indigo-600 transition">
+            About
+          </Link>
+          <Link to="/contact" className="hover:text-indigo-600 transition">
+            Contact
+          </Link>
+        </nav>
 
-            {authUser && (
-              <>
-                <Link to={"/editProfile"} className={`btn btn-sm gap-2`}>
-                  <User className="size-5" />
-                  <span className="hidden sm:inline">Profile</span>
-                </Link>
+        {/* Right - User Actions */}
+        <div className="flex items-center gap-4">
+          {authUser ? (
+            <>
+              <Link
+                to="/editProfile"
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-md hover:bg-gray-200 transition"
+              >
+                <User className="w-5 h-5" />
+                <span className="hidden sm:inline">Profile</span>
+              </Link>
 
-                <button className="flex gap-2 items-center" onClick={logout}>
-                  <LogOut className="size-5" />
-                  <span className="hidden sm:inline">Logout</span>
-                </button>
-              </>
-            )}
-          </div>
+              <Link
+                to="/settings"
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-md hover:bg-gray-200 transition"
+              >
+                <Settings className="w-5 h-5" />
+                <span className="hidden sm:inline">Settings</span>
+              </Link>
+
+              <button
+                onClick={logout}
+                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition"
+              >
+                <LogOut className="w-5 h-5" />
+                <span className="hidden sm:inline">Logout</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="px-4 py-2 border border-indigo-600 text-indigo-600 rounded-md hover:bg-indigo-600 hover:text-white transition"
+              >
+                Login
+              </Link>
+              <Link
+                to="/register"
+                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition"
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
   );
 };
+
 export default Navbar;

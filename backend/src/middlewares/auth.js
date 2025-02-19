@@ -39,7 +39,7 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
     }
 
     req.user = rows[0];
-    console.log("user logout");
+    
     next();
   } catch (error) {
     throw new ApiError(401, error.message);

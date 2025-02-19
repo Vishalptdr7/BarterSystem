@@ -122,6 +122,52 @@ export const register = async (req, res) => {
 };
 
 
+
+
+// ✅ Resend Otp
+export const resendOtp = async (req, res) => {
+  try {
+    const { email } = req.body.email;
+    console.log("Received email for OTP resend:", email);
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const [user] = await db.execute("SELECT * FROM users WHERE email = ?", [
+      email,
+    ]);
+    console.log("User found in DB:", user);
+
+    if (user.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Generate and update OTP
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
+
+    await db.execute(
+      "UPDATE users SET otp = ?, otp_expires = ? WHERE email = ?",
+      [otp, otpExpires, email]
+    );
+
+    await sendOTP(email, otp);
+
+    return res.status(200).json({ message: "OTP resent successfully" });
+  } catch (error) {
+    console.error("Resend OTP error:", error);
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
+  }
+};
+
+
+
+
+
+
 // ✅ Verify OTP Function
 export const verifyOTP = async (req, res) => {
   try {
@@ -168,6 +214,7 @@ return res.status(200).json({
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 
 

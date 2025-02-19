@@ -19,12 +19,10 @@ export const useAuthStore = create((set, get) => ({
       const res = await axiosInstance.get("/users/current");
       if (res.data.statusCode === 200) {
         set({ authUser: res.data.message });
-        console.log("Auth User:", res.data.message); // Check the response for the 'email' field
       } else {
         set({ authUser: null });
       }
     } catch (error) {
-      console.log("❌ Error in checkAuth:", error);
       set({ authUser: null });
     } finally {
       set({ isCheckingAuth: false });
@@ -47,10 +45,8 @@ export const useAuthStore = create((set, get) => ({
   verifyOtp: async (data) => {
     try {
       const res = await axiosInstance.post("/users/verifyOtp", data);
-      console.log("Verify OTP Response:", res.data);
       if (res.data.success) {
         set({ authUser: res.data.user }); // Store the returned user data
-        // toast.success("Email verified successfully.");
       } else {
         toast.error(res.data.message || "OTP verification failed");
       }
@@ -72,7 +68,6 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-
   logout: async () => {
     try {
       await axiosInstance.post("/users/logout");
@@ -80,6 +75,21 @@ export const useAuthStore = create((set, get) => ({
       toast.success("Logged out successfully");
     } catch (error) {
       toast.error(error.response?.data?.message || "Logout failed");
+    }
+  },
+  resendOtp: async (email) => {
+    if (!email) {
+      toast.error("Email is required to resend OTP");
+      return;
+    }
+
+    try {
+      await axiosInstance.post("/users/resendOtp", { email });
+      set({authUser:email})
+      toast.success("OTP sent again to your email.");
+    } catch (error) {
+      console.error("Error in resending OTP:", error);
+      toast.error(error.response?.data?.message || "Failed to resend OTP");
     }
   },
 }));

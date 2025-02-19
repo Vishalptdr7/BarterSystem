@@ -6,17 +6,21 @@ import { toast } from "react-hot-toast";
 const VerifyOtpPage = () => {
   const [otp, setOtp] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isResending, setIsResending] = useState(false); // State for resending OTP
   const navigate = useNavigate();
   const location = useLocation();
   const email = location.state?.email || "";
   const password = location.state?.password;
-  console.log("divana", email,password);
-   const [formData, setFormData] = useState({
-     email: email,
-     password: password,
-   });
-  const { verifyOtp, authUser, login } = useAuthStore();
+
+  const [formData, setFormData] = useState({
+    email: email,
+    password: password,
+  });
+
+  const { verifyOtp, authUser, login, resendOtp } = useAuthStore(); // Import resendOtp
+
   const handleOtpChange = (e) => setOtp(e.target.value);
+
   const handleVerifyOtp = async () => {
     if (!otp) {
       toast.error("Please enter the OTP");
@@ -39,8 +43,7 @@ const VerifyOtpPage = () => {
       await verifyOtp({ email, otp });
       setTimeout(() => {
         if (authUser) {
-                  console.log("User logged in dfgdfgdg ", authUser);
-
+          console.log("User logged in successfully", authUser);
           login(formData);
           toast.success("Email verified successfully.");
           navigate("/"); // Redirect to home page
@@ -50,12 +53,28 @@ const VerifyOtpPage = () => {
       }, 500); // Delay to ensure authUser is updated
     } catch (error) {
       console.error("Error in OTP verification:", error);
-      toast.error( "OTP verification failed k");
+      toast.error("OTP verification failed");
     } finally {
       setIsVerifying(false);
     }
   };
 
+  const handleResendOtp = async () => {
+    if (!email) {
+      toast.error("User email is missing");
+      return;
+    }
+    setIsResending(true);
+    try {
+       resendOtp({ email });
+      toast.success("OTP resent successfully.");
+    } catch (error) {
+      console.error("Error in resending OTP:");
+      toast.error("Failed to resend OTP");
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 flex justify-center items-center p-6">
@@ -90,9 +109,13 @@ const VerifyOtpPage = () => {
           </button>
           <p className="text-center text-sm text-gray-500">
             Didn't receive an OTP?{" "}
-            <a href="#" className="text-indigo-600 hover:text-indigo-700">
-              Resend OTP
-            </a>
+            <button
+              onClick={handleResendOtp}
+              disabled={isResending}
+              className="text-indigo-600 hover:text-indigo-700"
+            >
+              {isResending ? "Resending..." : "Resend OTP"}
+            </button>
           </p>
         </div>
       </div>

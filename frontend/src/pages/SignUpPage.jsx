@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore.js";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import { EyeIcon, EyeOffIcon } from "lucide-react"; // Using lucide-react for icons
 
 const SignUpPage = () => {
   const [name, setName] = useState("");
@@ -10,6 +11,8 @@ const SignUpPage = () => {
   const [role, setRole] = useState("user");
   const { signup, isSigningUp } = useAuthStore();
   const navigate = useNavigate();
+    const [showPassword, setShowPassword] = useState(false);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -65,22 +68,35 @@ const SignUpPage = () => {
               className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-200 ease-in-out"
             />
           </div>
-          <div>
+          <div className="relative">
             <label
               htmlFor="password"
               className="block text-sm font-medium text-gray-700"
             >
               Password
             </label>
-            <input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-200 ease-in-out"
-            />
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-200 ease-in-out pr-12"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition"
+              >
+                {showPassword ? (
+                  <EyeOffIcon size={20} />
+                ) : (
+                  <EyeIcon size={20} />
+                )}
+              </button>
+            </div>
           </div>
           <div>
             <label
@@ -97,7 +113,6 @@ const SignUpPage = () => {
             >
               <option value="user">User</option>
               <option value="admin">Admin</option>
-              <option value="instructor">Instructor</option>
             </select>
           </div>
           <button

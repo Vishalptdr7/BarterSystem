@@ -1,22 +1,29 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { axiosInstance } from "../lib/axios";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate(); // Initialize navigate
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
     setError("");
-   
 
     try {
       const response = await axiosInstance.post("/users/forgotPassword", {
         email,
       });
+      console.log(response.data.message);
       setMessage(response.data.message);
+
+      // Redirect to ResetPasswordPage with email as state
+      setTimeout(() => {
+        navigate("/resetPassword", { state: { email } });
+      }, 2000);
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong");
     }
@@ -44,15 +51,12 @@ const ForgotPasswordPage = () => {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          
-            {" "}
-            <button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-md transition"
-            >
-              Send OTP
-            </button>
-         
+          <button
+            type="submit"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-md transition"
+          >
+            Send OTP
+          </button>
         </form>
       </div>
     </div>

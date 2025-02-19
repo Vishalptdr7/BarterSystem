@@ -1,14 +1,16 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom"; // Import useLocation
 import { axiosInstance } from "../lib/axios.js";
 
 const ResetPasswordPage = () => {
-  const [email, setEmail] = useState("");
+  const location = useLocation(); // Get the state from navigation
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState(location.state?.email || ""); // Get email from state
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,7 +24,9 @@ const ResetPasswordPage = () => {
         newPassword,
       });
       setMessage(response.data.message);
-      setTimeout(() => navigate("/login"), 2000); // Redirect after success
+
+      // Redirect to login page after 2 seconds
+      setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong");
     }
