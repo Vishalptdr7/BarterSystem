@@ -10,6 +10,9 @@ notificationRouter.route("/:notification_id").delete(verifyJWT,deleteNotificatio
 notificationRouter.route("/user/:user_id").get(verifyJWT,getUserNotifications);
 
 notificationRouter.route("/:notification_id").put(verifyJWT,markNotificationAsRead);
+
+
+
 export {notificationRouter};
 
 

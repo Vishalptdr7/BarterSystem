@@ -2,7 +2,7 @@ import { Briefcase, Globe, Users, CheckCircle } from "lucide-react";
 
 const AboutUs = () => {
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center py-12 px-6">
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center  px-6 py-20">
       {/* Hero Section */}
       <div className="max-w-4xl text-center">
         <h1 className="text-4xl font-bold text-gray-900">

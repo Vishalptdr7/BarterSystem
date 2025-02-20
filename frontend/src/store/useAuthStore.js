@@ -13,12 +13,15 @@ export const useAuthStore = create((set, get) => ({
   isCheckingAuth: true,
   onlineUsers: [],
   socket: null,
-
+  userId:null,
+  setAuthUser: (userData) => set({ authUser: userData }),
   checkAuth: async () => {
     try {
+    
       const res = await axiosInstance.get("/users/current");
+      console.log(res.data.message.user_id);
       if (res.data.statusCode === 200) {
-        set({ authUser: res.data.message });
+        set({ authUser: res.data.message,userId:res.data.message.user_id });
       } else {
         set({ authUser: null });
       }
@@ -27,7 +30,7 @@ export const useAuthStore = create((set, get) => ({
     } finally {
       set({ isCheckingAuth: false });
     }
-  },
+},
 
   signup: async (data) => {
     set({ isSigningUp: true });
@@ -85,7 +88,7 @@ export const useAuthStore = create((set, get) => ({
 
     try {
       await axiosInstance.post("/users/resendOtp", { email });
-      set({authUser:email})
+      set({ authUser: email });
       toast.success("OTP sent again to your email.");
     } catch (error) {
       console.error("Error in resending OTP:", error);

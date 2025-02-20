@@ -6,26 +6,27 @@ import { axiosInstance } from "../lib/axios.js";
 import { Camera } from "lucide-react";
 
 const EditProfilePage = () => {
-  const { authUser, setAuthUser } = useAuthStore();
-  const navigate = useNavigate();
+  const { authUser, setAuthUser } = useAuthStore(); // Get authentication details from store
+  const navigate = useNavigate(); // Hook for navigation
 
-  // State to hold form data
+  // Initialize form state with user details
   const [formData, setFormData] = useState({
     name: authUser?.name || "",
     location: authUser?.location || "",
     bio: authUser?.bio || "",
   });
 
+  // State for profile picture
   const [profilePic, setProfilePic] = useState(null);
   const [previewImage, setPreviewImage] = useState(authUser?.profile_pic || "");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // Loading state for submission
 
-  // Handle input change
+  // Handle text input change
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle file selection
+  // Handle profile picture selection
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -34,12 +35,18 @@ const EditProfilePage = () => {
     }
   };
 
-  // Submit updated profile data
+  // Navigate to UserSkillsManager
+  const handleSkills = () => {
+    navigate(`/user_skill/${authUser?.user_id}`);
+  };
+
+  // Handle profile update submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      // Prepare form data for API call
       const formDataToSend = new FormData();
       formDataToSend.append("name", formData.name);
       formDataToSend.append("location", formData.location);
@@ -48,6 +55,7 @@ const EditProfilePage = () => {
         formDataToSend.append("profile_pic", profilePic);
       }
 
+      // API call to update profile
       const response = await axiosInstance.put(
         "/users/editProfile",
         formDataToSend,
@@ -56,7 +64,7 @@ const EditProfilePage = () => {
         }
       );
 
-      // Update authUser state
+      // Update local state with new user details
       setAuthUser({
         ...authUser,
         ...formData,
@@ -64,7 +72,7 @@ const EditProfilePage = () => {
       });
 
       toast.success("Profile updated successfully!");
-      navigate("/profile"); // Redirect to profile page
+      navigate("/user/home"); // Redirect user to profile page
     } catch (error) {
       console.error("Profile update failed:", error);
       toast.error(error.response?.data?.message || "Failed to update profile");
@@ -80,6 +88,7 @@ const EditProfilePage = () => {
           Edit Profile
         </h2>
 
+        {/* Profile Picture Upload */}
         <div className="flex flex-col items-center my-4">
           <div className="relative w-24 h-24">
             <img
@@ -99,8 +108,9 @@ const EditProfilePage = () => {
           </div>
         </div>
 
+        {/* Profile Update Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Name Field */}
+          {/* Name Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Name
@@ -115,7 +125,7 @@ const EditProfilePage = () => {
             />
           </div>
 
-          {/* Location Field */}
+          {/* Location Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Location
@@ -130,7 +140,7 @@ const EditProfilePage = () => {
             />
           </div>
 
-          {/* Bio Field */}
+          {/* Bio Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Bio
@@ -144,14 +154,24 @@ const EditProfilePage = () => {
             ></textarea>
           </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:bg-indigo-400 transition duration-200 ease-in-out"
-          >
-            {loading ? "Updating..." : "Save Changes"}
-          </button>
+          {/* Buttons */}
+          <div className="flex flex-col gap-3">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:bg-indigo-400 transition duration-200 ease-in-out"
+            >
+              {loading ? "Updating..." : "Save Changes"}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSkills}
+              className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition duration-200 ease-in-out"
+            >
+              Manage Skills
+            </button>
+          </div>
         </form>
       </div>
     </div>

@@ -7,6 +7,8 @@ import {
   deleteUser,
   editProfile,
   resendOtp,
+  getAllUsers,
+  getUserById,
 } from "../controllers/user.js";
 import { upload } from "../middlewares/multer.js";
 import { verifyJWT, isAdmin, isUser } from "../middlewares/auth.js";
@@ -58,7 +60,8 @@ export default router;
 
 router.route("/resendOtp").post(resendOtp);
 
+router.route("/getAllUsers").get(verifyJWT,getAllUsers);
 
+router.route("/:user_id").get(verifyJWT,getUserById);
 //  import chatRouter from "./chat.js";
 //  router.use("/chat", chatRouter);
- 

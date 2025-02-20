@@ -25,8 +25,29 @@ const sendOTP = async (email, otp) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: "Your OTP Code",
-    text: `Your OTP is: ${otp}. It is valid for 5 minutes.`,
+    subject: "🔐 Your One-Time Password (OTP) - BarterSystem",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+        <h2 style="color: #4F46E5; text-align: center;">🔑 Your OTP Code</h2>
+        <p style="font-size: 16px; color: #333;">
+          Hello, <br /><br />
+          You requested a One-Time Password (OTP) to verify your identity. Please use the OTP below to proceed:
+        </p>
+        <div style="text-align: center; font-size: 24px; font-weight: bold; color: #4F46E5; background: #F3F4F6; padding: 10px; border-radius: 8px; display: inline-block;">
+          ${otp}
+        </div>
+        <p style="font-size: 14px; color: #555; margin-top: 20px;">
+          This OTP is valid for <strong>5 minutes</strong>. Do not share it with anyone.
+        </p>
+        <p style="font-size: 14px; color: #777;">
+          If you did not request this OTP, please ignore this email or contact support.
+        </p>
+        <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;" />
+        <p style="text-align: center; font-size: 12px; color: #888;">
+          &copy; ${new Date().getFullYear()} BarterSystem. All rights reserved.
+        </p>
+      </div>
+    `,
   };
 
   try {
@@ -570,14 +591,12 @@ export  const editProfile = asyncHandler(async (req, res) => {
         .status(400)
         .json({ message: "User ID is missing from request" });
     }
-    console.log("Uploaded files:", req.files); // Log files to verify the upload
 
     const { name, location, bio } = req.body;
     let avtar = req.files?.profile_pic?.[0]?.path; // Check if file exists
 
     let profile_pic = null;
 
-    // Upload image only if provided
     if (avtar) {
       profile_pic = await uploadfileOnCloudinary(avtar); // Upload the avatar to Cloudinary
       if (!profile_pic) {
@@ -585,7 +604,6 @@ export  const editProfile = asyncHandler(async (req, res) => {
       }
     }
 
-    console.log("Profile Picture URL:", profile_pic?.url); // Debugging the profile_pic URL
 
     // Check if any field is provided
     if (!name && !location && !bio && !avtar) {
@@ -614,7 +632,6 @@ export  const editProfile = asyncHandler(async (req, res) => {
       user_id ?? null, // Ensure user_id is never undefined
     ];
 
-    console.log("SQL Query Values:", values); // Debugging
 
     // Execute the SQL query
     const [result] = await db.execute(query, values);
@@ -628,5 +645,87 @@ export  const editProfile = asyncHandler(async (req, res) => {
   } catch (error) {
     console.error("Profile update error:", error);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+
+
+
+
+
+
+// Get All Users with Skills
+export const getAllUsers = asyncHandler(async (req, res) => {
+  const loggedInUserId = req.user.user_id; // Get the logged-in user's ID
+  console.log(loggedInUserId)
+  const query = `
+    SELECT 
+        u.user_id, u.name, u.email, u.location, u.bio, u.role, u.profile_pic, u.created_at,
+        JSON_ARRAYAGG(
+            JSON_OBJECT(
+                'user_skill_id', us.user_skill_id,
+                'skill_id', s.skill_id,
+                'skill_name', s.skill_name,
+                'description', s.description,
+                'proficiency_level', us.proficiency_level
+            )
+        ) AS skills
+    FROM users u
+    LEFT JOIN user_skills us ON u.user_id = us.user_id
+    LEFT JOIN skills s ON us.skill_id = s.skill_id
+    WHERE u.user_id != ?
+    GROUP BY u.user_id;
+  `;
+
+  const [users] = await pool.query(query, [loggedInUserId]);
+
+  res.json(users);
+});
+
+
+
+
+
+export const getUserById = asyncHandler(async (req, res) => {
+  try {
+    const { user_id } = req.params;
+
+    // Validate user_id
+    if (!user_id) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    // Fetch user details
+    const userQuery = `
+      SELECT user_id, name, email, location, bio, role, profile_pic, created_at
+      FROM users
+      WHERE user_id = ?
+    `;
+
+    const [userResult] = await db.execute(userQuery, [user_id]);
+
+    if (userResult.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const user = userResult[0];
+
+    // Fetch user's skills
+    const skillsQuery = `
+      SELECT us.user_skill_id, s.skill_id, s.skill_name, s.description, us.proficiency_level
+      FROM user_skills us
+      JOIN skills s ON us.skill_id = s.skill_id
+      WHERE us.user_id = ?
+    `;
+
+    const [skillsResult] = await db.execute(skillsQuery, [user_id]);
+
+    // Attach skills to user object
+    user.skills = skillsResult || [];
+
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
