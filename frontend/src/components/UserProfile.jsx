@@ -44,11 +44,18 @@ const UserProfile = () => {
         <>
           {/* Profile Header */}
           <div className="flex items-center space-x-4">
-            <img
-              src={user.profile_pic || "/default-avatar.png"}
-              alt={user.name}
-              className="w-20 h-20 rounded-full border-2 border-gray-300"
-            />
+            {user.profile_pic ? (
+              <img
+                src={user.profile_pic}
+                alt={user.name}
+                className="w-20 h-20 rounded-full border-2 border-gray-300 object-cover"
+              />
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-gray-400 flex items-center justify-center text-white text-2xl font-semibold border-2 border-gray-300">
+                {user?.name?.charAt(0).toUpperCase() || "U"}
+              </div>
+            )}
+
             <div>
               <h2 className="text-2xl font-bold">{user.name}</h2>
               <p className="text-gray-600">{user.email}</p>

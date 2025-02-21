@@ -4,6 +4,8 @@ import { toast } from "react-hot-toast";
 import { MessageCircle, Repeat, User } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore.js"; // Assuming you have an AuthContext for logged-in user info
 import { useNavigate } from "react-router-dom";
+import SendNotification from "../components/SendNotification.jsx";
+import { useSwapStore } from "../store/useSwapStore.js";
 const HomePage = () => {
   const [users, setUsers] = useState([]);
   const { authUser } = useAuthStore(); // Get logged-in user details
@@ -11,7 +13,7 @@ const navigate=useNavigate();
   useEffect(() => {
     fetchUsers();
   }, []);
-
+  
   const fetchUsers = async () => {
     try {
       const { data } = await axiosInstance.get("/users/getAllUsers"); // Fetch all users
@@ -23,9 +25,15 @@ const navigate=useNavigate();
       toast.error("Failed to fetch users.");
     }
   };
-
+  const {setUserId}=useSwapStore();
   const handleSwapRequest = (userId) => {
+    
+    setUserId(userId);
     toast.success(`Swap request sent to user ${userId}`);
+    
+    navigate(`/notification`);
+
+    
     // Call swap API when integrated
   };
 
@@ -52,11 +60,17 @@ const navigate=useNavigate();
               className="bg-white shadow-md p-4 rounded-lg border"
             >
               <div className="flex items-center space-x-4">
-                <img
-                  src={user.profile_pic || "/default-avatar.png"}
-                  alt={user.name}
-                  className="w-14 h-14 rounded-full"
-                />
+                {user.profile_pic ? (
+                  <img
+                    src={user.profile_pic}
+                    alt={user.name}
+                    className="w-14 h-14 rounded-full"
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-full bg-gray-400 flex items-center justify-center text-white text-xl font-semibold">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
                 <div>
                   <h2 className="text-xl font-semibold">{user.name}</h2>
                   <p className="text-gray-600">

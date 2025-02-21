@@ -13,7 +13,16 @@ const Navbar = () => {
           to="/"
           className="flex items-center gap-3 text-gray-800 hover:opacity-80 transition-all"
         >
-          <div className="size-10 bg-indigo-500 text-white rounded-lg flex items-center justify-center font-bold text-lg"></div>
+          <nav className="bg-white shadow-md p-4 flex items-center">
+            <div className="ml-4">
+              <img
+                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ077k7uCCqVLzAQ7doJ8hMPg8Fxs6R7H_rJg&s"
+                alt="Logo"
+                className="h-12 w-auto"
+              />
+            </div>
+          </nav>
+
           <h1 className="text-xl font-bold">BarterSystem</h1>
         </Link>
 
@@ -42,9 +51,9 @@ const Navbar = () => {
                 <User className="w-5 h-5" />
                 <span className="hidden sm:inline">Profile</span>
               </Link>
-                
-                <Notification userId={userId} />
-              
+
+              <Notification userId={userId} />
+
               <Link
                 to="/settings"
                 className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-md hover:bg-gray-200 transition"

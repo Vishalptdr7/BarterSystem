@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast";
 import { Bell, CheckCircle, Trash2 } from "lucide-react";
 
 const Notification = ({ userId }) => {
+  
   const [notifications, setNotifications] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -16,7 +17,7 @@ const Notification = ({ userId }) => {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const { data } = await axiosInstance.get(`/user/notification/${userId}`);
+      const { data } = await axiosInstance.get(`/notification/user/${userId}`);
       setNotifications(data.notifications);
       setLoading(false);
     } catch (error) {
@@ -43,7 +44,7 @@ const Notification = ({ userId }) => {
   // Delete notification
   const deleteNotification = async (notificationId) => {
     try {
-      await axiosInstance.delete(`/notification/delete/${notificationId}`);
+      await axiosInstance.delete(`/notification/${notificationId}`);
       setNotifications(
         notifications.filter((n) => n.notification_id !== notificationId)
       );

@@ -19,9 +19,13 @@ import AdminHomePage from "./pages/HomeAdminPage";
 import UserProfile from "./components/UserProfile.jsx";
 import UserSkillsManager from "./components/UserSkillsManager.jsx";
 import SettingPage from "./pages/SettingPage.jsx";
+import { useThemeStore } from "./store/useThemeStore";
+import SendNotification from "./components/SendNotification.jsx";
+import { useSwapStore } from "./store/useSwapStore.js";
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
-
+  const { theme } = useThemeStore();
+  const {userId}=useSwapStore();
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
@@ -35,7 +39,7 @@ const App = () => {
     const role=authUser?.role;
     console.log(authUser)
   return (
-    <div className="flex flex-col min-h-screen">
+    <div data-theme={theme} className="flex flex-col min-h-screen">
       <Navbar />
       <div className="flex-grow">
         <Routes>
@@ -123,8 +127,14 @@ const App = () => {
             path="/profile/:userId"
             element={authUser ? <UserProfile /> : <Navigate to="/login" />}
           />
-          <Route path="/user_skill/:userId" element={authUser?<UserSkillsManager />:<Navigate to="/login" />} />
-          <Route path="/settings" element={<SettingPage/>}/>
+          <Route
+            path="/user_skill/:userId"
+            element={
+              authUser ? <UserSkillsManager /> : <Navigate to="/login" />
+            }
+          />
+          <Route path="/settings" element={<SettingPage />} />
+          <Route path="/notification" element={<SendNotification userId={userId}/>}/>
           {/* <Route
             path="/skill"
             element={authUser ? <SkillsPage /> : <Navigate to="/login" />}

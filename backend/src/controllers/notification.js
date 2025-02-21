@@ -1,27 +1,45 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import db from "../db/db.js"
+import { io } from "../lib/socket.js";
+import { getReceiverSocketId } from "../lib/socket.js";
 export const sendNotification = asyncHandler(async (req, res) => {
   try {
-    const { user_id, message } = req.body;
+    const { user_id, sender_id, message } = req.body;
 
-    if (!user_id || !message) {
-      return res
-        .status(400)
-        .json({ message: "User ID and message are required" });
+    if (!user_id || !sender_id || !message) {
+      return res.status(400).json({
+        message: "User ID, sender ID, and message are required",
+      });
     }
 
+    // Store notification in the database
     const [result] = await db.execute(
-      "INSERT INTO notification (user_id, message) VALUES (?, ?)",
-      [user_id, message]
+      "INSERT INTO notification (user_id, sender_id, message) VALUES (?, ?, ?)",
+      [user_id, sender_id, message]
     );
 
-    res
-      .status(201)
-      .json({ message: "Notification sent", notification_id: result.insertId });
+    const notification_id = result.insertId;
+
+    // Check if the receiver is online
+    const receiverSocketId = getReceiverSocketId(user_id);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("receiveNotification", {
+        notification_id,
+        user_id,
+        sender_id,
+        message,
+        is_read: false,
+        created_at: new Date(),
+      });
+    }
+
+    res.status(201).json({ message: "Notification sent", notification_id });
   } catch (error) {
+    console.error("Error sending notification:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
+
 
 
 export const getUserNotifications = asyncHandler(async (req, res) => {

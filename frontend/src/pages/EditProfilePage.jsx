@@ -91,11 +91,18 @@ const EditProfilePage = () => {
         {/* Profile Picture Upload */}
         <div className="flex flex-col items-center my-4">
           <div className="relative w-24 h-24">
-            <img
-              src={previewImage || "/default-avatar.png"}
-              alt="Profile Preview"
-              className="w-24 h-24 rounded-full object-cover border border-gray-300"
-            />
+            {previewImage ? (
+              <img
+                src={previewImage}
+                alt="Profile Preview"
+                className="w-24 h-24 rounded-full object-cover border border-gray-300"
+              />
+            ) : (
+              <div className="w-24 h-24 rounded-full bg-gray-400 flex items-center justify-center text-white text-3xl font-semibold border border-gray-300">
+                {user?.name?.charAt(0).toUpperCase() || "U"}
+              </div>
+            )}
+
             <label className="absolute bottom-0 right-0 bg-indigo-600 p-2 rounded-full cursor-pointer">
               <Camera className="w-5 h-5 text-white" />
               <input
