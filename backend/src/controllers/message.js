@@ -1,94 +1,107 @@
-import db from "../db/db.js"; // Ensure database connection
+import db from "../db/db.js"; // MySQL Database Connection
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { uploadfileOnCloudinary } from "../utils/cloudinary.js";
 import cloudinary from "cloudinary";
-// Send a message
+import { io } from "../lib/socket.js";
+import { getReceiverSocketId } from "../lib/socket.js";
+
+// Send a new message
 export const sendMessage = asyncHandler(async (req, res) => {
   try {
-    const { chat_id, sender_user_id, content } = req.body;
-    const image = req.files?.image?.[0]?.path || null; // Ensure it's null if not provided
-    let image_url = null;
+    const { text, image } = req.body;
+    const { receiver_id } = req.params;
+    const sender_id = req.user.user_id; // Assuming req.user contains user_id
 
-    if (!chat_id || !sender_user_id) {
-      return res
-        .status(400)
-        .json({ message: "Chat ID and Sender ID are required" });
-    }
-
-
+    let imageUrl = null;
     if (image) {
-      try {
-        const uploadOnCloud = await uploadfileOnCloudinary(image);
-        image_url = uploadOnCloud.secure_url;
-      } catch (uploadError) {
-        return res
-          .status(500)
-          .json({ message: "Image upload failed", error: uploadError.message });
-      }
+      // Upload image to Cloudinary
+      const uploadResponse = await cloudinary.uploader.upload(image);
+      imageUrl = uploadResponse.secure_url;
     }
 
-
-    // Ensure at least one of `content` or `image_url` is present
-    const messageContent = content && content.trim() !== "" ? content : null;
-    if (!messageContent && !image_url) {
-      return res
-        .status(400)
-        .json({ message: "Message must contain text or an image" });
-    }
-
-    // Insert into database
+    // Insert message into database
     const [result] = await db.execute(
-      "INSERT INTO message (chat_id, sender_user_id, content, image) VALUES (?, ?, ?, ?)",
-      [chat_id, sender_user_id, messageContent, image_url]
+      "INSERT INTO message (sender_user_id, receiver_user_id, content, image) VALUES (?, ?, ?, ?)",
+      [sender_id, receiver_id, text, imageUrl]
     );
 
-    res.status(201).json({
-      message: "Message sent successfully",
+    const newMessage = {
       message_id: result.insertId,
-      content: messageContent,
-      image_url: image_url,
-    });
+      sender_user_id: sender_id,
+      receiver_user_id: receiver_id,
+      content: text,
+      image: imageUrl,
+      sent_at: new Date(),
+    };
+
+    // Emit real-time message event
+    const receiverSocketId = getReceiverSocketId(receiver_id);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("newMessage", newMessage);
+    }
+
+    res.status(201).json(newMessage);
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.error("Error in sendMessage controller:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-
-
-// Get all messages in a chat
-export const getMessagesInChat =asyncHandler( async (req, res) => {
+// Get users for the sidebar (Users that the current user has chatted with)
+export const getUsersForSidebar = asyncHandler(async (req, res) => {
   try {
-    const { chat_id } = req.params;
+    const loggedInUserId = req.user.user_id; // Assuming req.user contains user_id
+
+    const [users] = await db.execute(
+      `SELECT DISTINCT u.user_id, u.name, u.email 
+       FROM users u
+       JOIN message m ON u.user_id = m.sender_user_id OR u.user_id = m.receiver_user_id
+       WHERE u.user_id != ?`,
+      [loggedInUserId]
+    );
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error in getUsersForSidebar controller:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// Get all messages between two users
+export const getMessages = asyncHandler(async (req, res) => {
+  try {
+    const { receiver_id } = req.params;
+    const sender_id = req.user.user_id; // Assuming req.user contains user_id
 
     const [messages] = await db.execute(
-      "SELECT * FROM message WHERE chat_id = ? ORDER BY sent_at ASC",
-      [chat_id]
+      `SELECT * FROM message 
+       WHERE (sender_user_id = ? AND receiver_user_id = ?) 
+          OR (sender_user_id = ? AND receiver_user_id = ?) 
+       ORDER BY sent_at ASC`,
+      [sender_id, receiver_id, receiver_id, sender_id]
     );
 
     res.status(200).json(messages);
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.error("Error in getMessages controller:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-// Delete a message by message ID
-export const deleteMessage =asyncHandler( async (req, res) => {
+// Mark a message as read
+export const markMessageAsRead = asyncHandler(async (req, res) => {
   try {
-    const { message_id } = req.params;
+    const { message_id, user_id } = req.body;
 
-    const [result] = await db.execute(
-      "DELETE FROM message WHERE message_id = ?",
-      [message_id]
+    await db.execute(
+      `INSERT INTO message_read_receipts (message_id, user_id, is_read, read_at)
+       VALUES (?, ?, TRUE, NOW())
+       ON DUPLICATE KEY UPDATE is_read = TRUE, read_at = NOW()`,
+      [message_id, user_id]
     );
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Message not found" });
-    }
-
-    res.status(200).json({ message: "Message deleted successfully" });
+    res.status(200).json({ message: "Message marked as read" });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.error("Error in markMessageAsRead controller:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
-

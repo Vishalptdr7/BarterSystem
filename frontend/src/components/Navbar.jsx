@@ -13,12 +13,12 @@ const Navbar = () => {
           to="/"
           className="flex items-center gap-3 text-gray-800 hover:opacity-80 transition-all"
         >
-          <nav className="bg-white shadow-md p-4 flex items-center">
-            <div className="ml-4">
+          <nav className="bg-white py-3 px-6 flex items-center">
+            <div className="flex items-center">
               <img
                 src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ077k7uCCqVLzAQ7doJ8hMPg8Fxs6R7H_rJg&s"
                 alt="Logo"
-                className="h-12 w-auto"
+                className="h-14 w-auto object-contain"
               />
             </div>
           </nav>
@@ -48,8 +48,21 @@ const Navbar = () => {
                 to="/editProfile"
                 className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-md hover:bg-gray-200 transition"
               >
-                <User className="w-5 h-5" />
-                <span className="hidden sm:inline">Profile</span>
+                <div className="relative w-8 h-8">
+                  {authUser?.profile_pic ? (
+                    <img
+                      src={authUser.profile_pic}
+                      alt="Profile"
+                      className="w-8 h-8 rounded-full object-cover border border-gray-300"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-white text-xs font-semibold border border-gray-300">
+                      {authUser?.name?.charAt(0).toUpperCase() || "U"}
+                    </div>
+                  )}
+                </div>
+                <span className="hidden sm:inline">{authUser?.name}</span>{" "}
+                {/* Display the name, hidden on small screens */}
               </Link>
 
               <Notification userId={userId} />

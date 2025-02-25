@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 import { axiosInstance } from "../lib/axios.js";
 import { useAuthStore } from "../store/useAuthStore.js"; // Assuming authentication store
+import { FaBell } from "react-icons/fa"; // Import an icon for better UI
 
 const SendNotification = ({ userId: propUserId }) => {
-    
   const [userId, setUserId] = useState(propUserId || ""); // Initialize with propUserId
   console.log({ userId });
   const [messageType, setMessageType] = useState("connect");
@@ -40,7 +40,7 @@ const SendNotification = ({ userId: propUserId }) => {
   // Send notification via API and WebSocket
   const handleSendNotification = async () => {
     if (!userId) {
-      setStatus("User ID is required!");
+      setStatus("⚠️ User ID is required!");
       return;
     }
 
@@ -77,35 +77,55 @@ const SendNotification = ({ userId: propUserId }) => {
   };
 
   return (
-    <div className="max-w-md mx-auto p-4 bg-white shadow-lg rounded-lg">
-      <h2 className="text-xl font-bold mb-4">Send Notification</h2>
+    <div className="max-w-lg mx-auto mt-10 p-6 bg-white shadow-xl rounded-lg border border-gray-200">
+      <h2 className="text-2xl font-semibold text-gray-800 flex items-center gap-2">
+        <FaBell className="text-blue-500" /> Send Notification
+      </h2>
 
-      <input
-        type="text"
-        placeholder="User ID"
-        value={userId}
-        onChange={(e) => setUserId(e.target.value)}
-        className="w-full p-2 border rounded mb-2"
-        disabled={!!propUserId} // Disable input if userId is passed via props
-      />
+      <div className="mt-4">
+        <label className="block text-gray-600 text-sm font-medium mb-1">
+          User ID
+        </label>
+        <input
+          type="text"
+          placeholder="Enter User ID"
+          value={userId}
+          onChange={(e) => setUserId(e.target.value)}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
+          disabled={!!propUserId} // Disable input if userId is passed via props
+        />
+      </div>
 
-      <select
-        value={messageType}
-        onChange={(e) => setMessageType(e.target.value)}
-        className="w-full p-2 border rounded mb-2"
-      >
-        <option value="connect">Connect Request</option>
-        <option value="swap">Swap Request</option>
-      </select>
+      <div className="mt-4">
+        <label className="block text-gray-600 text-sm font-medium mb-1">
+          Notification Type
+        </label>
+        <select
+          value={messageType}
+          onChange={(e) => setMessageType(e.target.value)}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-400 focus:outline-none"
+        >
+          <option value="connect">Connect Request</option>
+          <option value="swap">Swap Request</option>
+        </select>
+      </div>
 
       <button
         onClick={handleSendNotification}
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        className="mt-6 w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition duration-300"
       >
         Send Notification
       </button>
 
-      {status && <p className="mt-2 text-sm">{status}</p>}
+      {status && (
+        <p
+          className={`mt-3 text-sm font-medium ${
+            status.includes("❌") ? "text-red-600" : "text-green-600"
+          }`}
+        >
+          {status}
+        </p>
+      )}
     </div>
   );
 };

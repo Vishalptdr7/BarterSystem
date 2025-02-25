@@ -11,12 +11,19 @@ export const getAllUserSkills = asyncHandler(async (req, res) => {
 // Get user skills by user ID
 export const getUserSkillsByUserId = asyncHandler(async (req, res) => {
   const { user_id } = req.params;
+
   const [rows] = await pool.execute(
-    "SELECT * FROM user_skills WHERE user_id = ?",
+    `
+    SELECT us.user_skill_id, s.skill_name, us.proficiency_level
+    FROM user_skills us
+    JOIN skills s ON us.skill_id = s.skill_id
+    WHERE us.user_id = ?`,
     [user_id]
   );
+
   res.json(rows);
 });
+
 
 // Add a new user skill
 export const addSkillToUser = asyncHandler(async (req, res) => {

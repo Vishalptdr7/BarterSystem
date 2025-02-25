@@ -22,6 +22,7 @@ import SettingPage from "./pages/SettingPage.jsx";
 import { useThemeStore } from "./store/useThemeStore";
 import SendNotification from "./components/SendNotification.jsx";
 import { useSwapStore } from "./store/useSwapStore.js";
+import ChatApp from "./components/ChatContainer.jsx";
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
   const { theme } = useThemeStore();
@@ -107,7 +108,7 @@ const App = () => {
           <Route path="/verifyOtp" element={<VerifyOtpPage />} />
           <Route
             path="/editProfile"
-            element={authUser ? <EditProfilePage /> : <Navigate to="/login" />}
+            element={<EditProfilePage /> }
           />
           <Route path="/forgotPassword" element={<ForgotPasswordPage />} />
           <Route path="/resetPassword" element={<ResetPasswordPage />} />
@@ -139,6 +140,7 @@ const App = () => {
             path="/skill"
             element={authUser ? <SkillsPage /> : <Navigate to="/login" />}
           /> */}
+          
         </Routes>
       </div>
       <Footer />

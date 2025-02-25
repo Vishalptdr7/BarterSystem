@@ -4,11 +4,11 @@ import { toast } from "react-hot-toast";
 import { MessageCircle, Repeat, User } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore.js"; // Assuming you have an AuthContext for logged-in user info
 import { useNavigate } from "react-router-dom";
-import SendNotification from "../components/SendNotification.jsx";
 import { useSwapStore } from "../store/useSwapStore.js";
 const HomePage = () => {
   const [users, setUsers] = useState([]);
-  const { authUser } = useAuthStore(); // Get logged-in user details
+  const { authUser } = useAuthStore();        
+  // Get logged-in user details
 const navigate=useNavigate();
   useEffect(() => {
     fetchUsers();
@@ -38,6 +38,7 @@ const navigate=useNavigate();
   };
 
   const handleChat = (userId) => {
+    navigate('/chatting');
     toast.success(`Opening chat with user ${userId}`);
     // Navigate to chat page when integrated
   };

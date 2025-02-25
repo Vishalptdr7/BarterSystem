@@ -1,11 +1,11 @@
 import { Router } from "express";
 const messageRouter=Router();
 import {upload} from "../middlewares/multer.js"
-import { sendMessage,deleteMessage,getMessagesInChat } from "../controllers/message.js";
+import { sendMessage,getMessages,getUsersForSidebar,markMessageAsRead } from "../controllers/message.js";
 import { verifyJWT } from "../middlewares/auth.js";
 
 
-messageRouter.route("/").post(
+messageRouter.route("/:receiver_id").post(
   verifyJWT,
   upload.fields([
     {
@@ -16,9 +16,12 @@ messageRouter.route("/").post(
   sendMessage
 );
 
-messageRouter.route("/chat/:chat_id").get(verifyJWT, getMessagesInChat);
 
-messageRouter.route("/:message_id").delete(verifyJWT, deleteMessage);
+messageRouter.route("/user").get(verifyJWT, getUsersForSidebar);
+
+messageRouter.route("/:receiver_id").get(verifyJWT,getMessages);
+
+messageRouter.route("/mark-read").post(verifyJWT,markMessageAsRead);
 
 
 

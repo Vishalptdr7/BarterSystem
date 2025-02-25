@@ -75,7 +75,7 @@ const EditProfilePage = () => {
       navigate("/user/home"); // Redirect user to profile page
     } catch (error) {
       console.error("Profile update failed:", error);
-      toast.error(error.response?.data?.message || "Failed to update profile");
+      toast.error(error?.response?.data?.message || "Failed to update profile");
     } finally {
       setLoading(false);
     }
@@ -85,7 +85,7 @@ const EditProfilePage = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="w-full max-w-lg bg-white shadow-md rounded-xl p-6 border">
         <h2 className="text-2xl font-bold text-center text-gray-900">
-          Edit Profile
+          
         </h2>
 
         {/* Profile Picture Upload */}
@@ -99,7 +99,8 @@ const EditProfilePage = () => {
               />
             ) : (
               <div className="w-24 h-24 rounded-full bg-gray-400 flex items-center justify-center text-white text-3xl font-semibold border border-gray-300">
-                {user?.name?.charAt(0).toUpperCase() || "U"}
+                {authUser?.name?.charAt(0).toUpperCase() || "U"}{" "}
+                {/* Fixed from 'user' to 'authUser' */}
               </div>
             )}
 
