@@ -9,19 +9,23 @@ const MessageInput = () => {
   const fileInputRef = useRef(null);
   const { sendMessage } = useChatStore();
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
-      return;
-    }
+ const handleImageChange = (e) => {
+   const file = e.target.files[0];
+   if (!file) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result);
-    };
-    reader.readAsDataURL(file);
-  };
+
+   if (!file.type.startsWith("image/")) {
+     toast.error("Please select an image file");
+     return;
+   }
+
+   const reader = new FileReader();
+   reader.onloadend = () => {
+     setImagePreview(reader.result);
+   };
+   reader.readAsDataURL(file);
+ };
+
 
   const removeImage = () => {
     setImagePreview(null);

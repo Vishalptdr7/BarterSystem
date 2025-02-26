@@ -16,12 +16,12 @@ const ChatHeader = () => {
               {selectedUser.profilePic ? (
                 <img
                   src={selectedUser.profilePic}
-                  alt={selectedUser.fullname}
+                  alt={selectedUser.name}
                   className="size-12 object-cover rounded-full"
                 />
               ) : (
                 <div className="size-12 rounded-full bg-pink-500 flex items-center justify-center text-white font-bold text-lg">
-                  {selectedUser.fullname.charAt(0).toUpperCase()}
+                  {selectedUser.name.charAt(0).toUpperCase()}
                 </div>
               )}
             </div>
@@ -29,7 +29,7 @@ const ChatHeader = () => {
 
           {/* User info */}
           <div>
-            <h3 className="font-medium">{selectedUser.fullname}</h3>
+            <h3 className="font-medium">{selectedUser.name}</h3>
             <p className="text-sm text-base-content/70">
               {onlineUsers.includes(selectedUser.user_id)
                 ? "Online"

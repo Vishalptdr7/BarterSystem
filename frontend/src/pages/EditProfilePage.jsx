@@ -4,7 +4,8 @@ import { useAuthStore } from "../store/useAuthStore.js";
 import { toast } from "react-hot-toast";
 import { axiosInstance } from "../lib/axios.js";
 import { Camera } from "lucide-react";
-
+import { Link } from "lucide-react";
+import { Settings } from "lucide-react";
 const EditProfilePage = () => {
   const { authUser, setAuthUser } = useAuthStore(); // Get authentication details from store
   const navigate = useNavigate(); // Hook for navigation
@@ -84,9 +85,7 @@ const EditProfilePage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="w-full max-w-lg bg-white shadow-md rounded-xl p-6 border">
-        <h2 className="text-2xl font-bold text-center text-gray-900">
-          
-        </h2>
+        <h2 className="text-2xl font-bold text-center text-gray-900"></h2>
 
         {/* Profile Picture Upload */}
         <div className="flex flex-col items-center my-4">
@@ -182,6 +181,7 @@ const EditProfilePage = () => {
           </div>
         </form>
       </div>
+      
     </div>
   );
 };

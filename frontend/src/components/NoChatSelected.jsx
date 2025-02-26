@@ -17,7 +17,7 @@ const NoChatSelected = () => {
         </div>
 
         {/* Welcome Text */}
-        <h2 className="text-2xl font-bold">Welcome to Barter Chat!</h2>
+        <h2 className="text-2xl font-bold">Chat With Users!</h2>
       </div>
     </div>
   );

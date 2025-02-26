@@ -21,28 +21,46 @@ import UserSkillsManager from "./components/UserSkillsManager.jsx";
 import SettingPage from "./pages/SettingPage.jsx";
 import { useThemeStore } from "./store/useThemeStore";
 import SendNotification from "./components/SendNotification.jsx";
-import { useSwapStore } from "./store/useSwapStore.js";
-import ChatApp from "./components/ChatContainer.jsx";
+import { useSwapStore } from "./store/useSwapStore.js"
+import Sidebar from "./components/SideBar.jsx";
+import { useChatStore } from "./store/useChatStore.js";
+import ChatPage from "./pages/Cont.jsx";
+import { useCallback } from "react";
 const App = () => {
+  
+  const {selectedUser}=useChatStore();
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
   const { theme } = useThemeStore();
+  
   const {userId}=useSwapStore();
-  useEffect(() => {
+
+  const checkAuthStatus = useCallback(() => {
     checkAuth();
   }, [checkAuth]);
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, [checkAuthStatus]);
+
   
   if (isCheckingAuth && !authUser)
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div
+        data-theme={theme}
+        className="flex items-center justify-center h-screen"
+      >
         <Loader className="size-10 animate-spin" />
       </div>
     );
-    const role=authUser?.role;
+
+    const role = authUser?.role || "";
+
     console.log(authUser)
   return (
     <div data-theme={theme} className="flex flex-col min-h-screen">
       <Navbar />
       <div className="flex-grow">
+        
         <Routes>
           <Route
             path="/admin/home"
@@ -140,7 +158,8 @@ const App = () => {
             path="/skill"
             element={authUser ? <SkillsPage /> : <Navigate to="/login" />}
           /> */}
-          
+          <Route path="/chat" element
+          ={ authUser?<ChatPage/>:<Navigate to="/login"/>}/>
         </Routes>
       </div>
       <Footer />

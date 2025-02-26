@@ -21,7 +21,7 @@ messageRouter.route("/user").get(verifyJWT, getUsersForSidebar);
 
 messageRouter.route("/:receiver_id").get(verifyJWT,getMessages);
 
-messageRouter.route("/mark-read").post(verifyJWT,markMessageAsRead);
+messageRouter.route("/mark_read").post(verifyJWT,markMessageAsRead);
 
 
 

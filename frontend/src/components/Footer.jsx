@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Facebook, Twitter, Linkedin, Instagram } from "lucide-react";
+import { Facebook, Twitter, Linkedin, Instagram, Settings } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -47,6 +47,14 @@ const Footer = () => {
                   Privacy Policy
                 </Link>
               </li>
+              <li>
+                <Link
+                  to="/settings"
+                  className="hover:text-indigo-400 transition"
+                >
+                  Settings
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -55,18 +63,15 @@ const Footer = () => {
             <h3 className="text-lg font-semibold text-white">Follow Us</h3>
             <div className="flex justify-center md:justify-start gap-4 mt-3">
               <Link to="https://www.facebook.com/profile.php?id=100025162934889">
-                {" "}
                 <Facebook className="w-5 h-5" />
               </Link>
               <a href="#" className="hover:text-indigo-400 transition">
                 <Twitter className="w-5 h-5" />
               </a>
               <Link to="https://www.linkedin.com/in/vishal-patidar-234249286/">
-                {" "}
                 <Linkedin className="w-5 h-5" />
               </Link>
               <Link to="https://www.instagram.com/vishal_ptdr07/?hl=en">
-                {" "}
                 <Instagram className="w-5 h-5" />
               </Link>
             </div>
