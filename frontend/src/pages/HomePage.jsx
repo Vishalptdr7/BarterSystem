@@ -2,33 +2,39 @@ import { useEffect, useState } from "react";
 import { axiosInstance } from "../lib/axios.js";
 import { toast } from "react-hot-toast";
 import { MessageCircle, Repeat, User } from "lucide-react";
-import { useAuthStore } from "../store/useAuthStore.js"; // Assuming you have an AuthContext for logged-in user info
+import { useAuthStore } from "../store/useAuthStore.js";
 import { useNavigate } from "react-router-dom";
 import { useSwapStore } from "../store/useSwapStore.js";
-import { useCallback } from "react";
+import { useChatStore } from "../store/useChatStore.js"; // Chat store
+import ChatContainer from "../components/ChatContainer"; // Chat UI
+
 const HomePage = () => {
   const [users, setUsers] = useState([]);
   const { authUser } = useAuthStore();
-  // Get logged-in user details
   const navigate = useNavigate();
-  
-useEffect(() => {
-  fetchUsers();
-}, []);
-
-const fetchUsers = async () => {
-  try {
-    const { data } = await axiosInstance.get("/users/getAllUsers");
-    console.log("Fetched Users Data:", data); // Check for duplicate skill IDs
-    setUsers(data.filter((user) => user.user_id !== authUser?.user_id));
-  } catch (error) {
-    toast.error("Failed to fetch users.");
-  }
-};
-
-// Depend on `authUser` only
-
   const { setUserId } = useSwapStore();
+  const { selectedUser, setSelectedUser } = useChatStore();
+  const [isChatOpen, setIsChatOpen] = useState(false); // Track modal state
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  useEffect(() => {
+    if (selectedUser) {
+      setIsChatOpen(true); // Ensure chat opens when a user is selected
+    }
+  }, [selectedUser]);
+
+  const fetchUsers = async () => {
+    try {
+      const { data } = await axiosInstance.get("/users/getAllUsers");
+      setUsers(data.filter((user) => user.user_id !== authUser?.user_id));
+    } catch (error) {
+      toast.error("Failed to fetch users.");
+    }
+  };
+
   const handleSwapRequest = (userId) => {
     if (!userId) return;
     setUserId(userId);
@@ -36,11 +42,9 @@ const fetchUsers = async () => {
     navigate(`/notification`);
   };
 
-  const handleChat = (userId) => {
-    if (!userId) return;
-    setUserId(userId);
-    navigate("/chat");
-    toast.success(`Opening chat with user ${userId}`);
+  const handleChat = (user) => {
+    if (!user) return;
+    setSelectedUser(user); // Update selected user in store
   };
 
   const handleViewProfile = (userId) => {
@@ -49,10 +53,9 @@ const fetchUsers = async () => {
     toast.success(`Viewing profile of user ${userId}`);
   };
 
-
   return (
     <div className="container mx-auto py-20 p-8">
-      <h1 className="text-3xl font-bold mb-6 text-center"></h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">Users</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {users.length > 0 ? (
@@ -85,7 +88,7 @@ const fetchUsers = async () => {
                 <h3 className="font-semibold text-gray-800">Skills:</h3>
                 {user.skills && user.skills.length > 0 ? (
                   <ul className="list-disc list-inside text-gray-600">
-                    {(user.skills || []).map((skill, index) => (
+                    {user.skills.map((skill, index) => (
                       <li key={`${skill.skill_id}-${index}`}>
                         {skill.skill_name} ({skill.proficiency_level})
                       </li>
@@ -98,8 +101,7 @@ const fetchUsers = async () => {
 
               <div className="flex justify-between mt-4">
                 <button
-                  aria-label="Send swap request"
-                  className="bg-blue-500 text-white px-4 py-2 rounded flex items-center hover:bg-blue-600 focus:ring focus:ring-blue-300"
+                  className="bg-blue-500 text-white px-4 py-2 rounded flex items-center hover:bg-blue-600"
                   onClick={() => handleSwapRequest(user.user_id)}
                 >
                   <Repeat className="w-5 h-5 mr-2" /> Swap
@@ -107,7 +109,7 @@ const fetchUsers = async () => {
 
                 <button
                   className="bg-green-500 text-white px-4 py-2 rounded flex items-center"
-                  onClick={() => handleChat(user.user_id)}
+                  onClick={() => handleChat(user)}
                 >
                   <MessageCircle className="w-5 h-5 mr-2" /> Chat
                 </button>
@@ -125,6 +127,24 @@ const fetchUsers = async () => {
           <p className="text-center col-span-3">No users available.</p>
         )}
       </div>
+
+      {/* Chat Container - Render only when a user is selected */}
+      {isChatOpen && selectedUser && (
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl relative">
+            <button
+              className="absolute top-3 right-3 bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+              onClick={() => {
+                setIsChatOpen(false);
+                setSelectedUser(null);
+              }}
+            >
+              Close
+            </button>
+            <ChatContainer />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

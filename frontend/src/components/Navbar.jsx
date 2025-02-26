@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore.js";
-import { LogOut, Settings, User, Home } from "lucide-react";
+import { LogOut, Settings, User, Home, ChartBarIcon, MessageCircleCodeIcon } from "lucide-react";
 import Notification from "./Notification.jsx";
 const Navbar = () => {
   const { logout, authUser,userId } = useAuthStore();
@@ -64,10 +64,13 @@ const Navbar = () => {
                 <span className="hidden sm:inline">{authUser?.name}</span>{" "}
                 {/* Display the name, hidden on small screens */}
               </Link>
+              <div className="">
+                <Link to="/chat">
+                  <MessageCircleCodeIcon size={32} />
+                </Link>
+              </div>
 
               <Notification userId={userId} />
-
-              
 
               <button
                 onClick={logout}

@@ -75,20 +75,14 @@ export const sendMessage = asyncHandler(async (req, res) => {
 export const getUsersForSidebar = asyncHandler(async (req, res) => {
   try {
     const loggedInUserId = req.user.user_id; // Assuming req.user contains user_id
-    // const [users] = await db.execute(
-    //   `SELECT DISTINCT u.user_id, u.name, u.email 
-    //    FROM users u
-    //    JOIN message m ON u.user_id = m.sender_user_id OR u.user_id = m.receiver_user_id
-    //    WHERE u.user_id != ?`,
-    //   [loggedInUserId]
-    // );
-    const [users] = await db.execute(
-      `SELECT user_id, name, email 
-   FROM users 
-   WHERE user_id != ?`,
-      [loggedInUserId]  
-    ); 
 
+    const [users] = await db.execute(
+      `SELECT DISTINCT u.user_id, u.name, u.email
+       FROM users u
+       JOIN message m ON u.user_id = m.sender_user_id OR u.user_id = m.receiver_user_id
+       WHERE u.user_id != ? AND (m.sender_user_id = ? OR m.receiver_user_id = ?)`,
+      [loggedInUserId, loggedInUserId, loggedInUserId]
+    );
 
     res.status(200).json(users);
   } catch (error) {
@@ -96,6 +90,7 @@ export const getUsersForSidebar = asyncHandler(async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 
 // Get all messages between two users
 export const getMessages = asyncHandler(async (req, res) => {
