@@ -120,6 +120,9 @@ export const useAuthStore = create((set, get) => ({
     socket.on("disconnect", (reason) =>
       console.warn("⚠️ WebSocket Disconnected:", reason)
     );
+    socket.on("getOnlineUsers", (userIds) => {
+      set({ onlineUsers: userIds });
+    });
     socket.on("connect_error", (err) =>
       console.error("❌ WebSocket Error:", err)
     );

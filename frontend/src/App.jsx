@@ -21,18 +21,17 @@ import UserSkillsManager from "./components/UserSkillsManager.jsx";
 import SettingPage from "./pages/SettingPage.jsx";
 import { useThemeStore } from "./store/useThemeStore";
 import SendNotification from "./components/SendNotification.jsx";
-import { useSwapStore } from "./store/useSwapStore.js"
+import { useSwapStore } from "./store/useSwapStore.js";
 import Sidebar from "./components/SideBar.jsx";
 import { useChatStore } from "./store/useChatStore.js";
 import ChatPage from "./pages/Cont.jsx";
 import { useCallback } from "react";
 const App = () => {
-  
-  const {selectedUser}=useChatStore();
+  const { selectedUser, setSelectedUser } = useChatStore();
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
   const { theme } = useThemeStore();
-  
-  const {userId}=useSwapStore();
+
+  const { userId } = useSwapStore();
 
   const checkAuthStatus = useCallback(() => {
     checkAuth();
@@ -40,9 +39,9 @@ const App = () => {
 
   useEffect(() => {
     checkAuthStatus();
-  }, [checkAuthStatus]);
+    setSelectedUser(null); // Reset selectedUser when navigating back to home page
+  }, [checkAuthStatus, setSelectedUser]);
 
-  
   if (isCheckingAuth && !authUser)
     return (
       <div
@@ -53,14 +52,13 @@ const App = () => {
       </div>
     );
 
-    const role = authUser?.role || "";
+  const role = authUser?.role || "";
 
-    console.log(authUser)
+  console.log(authUser);
   return (
     <div data-theme={theme} className="flex flex-col min-h-screen">
       <Navbar />
       <div className="flex-grow">
-        
         <Routes>
           <Route
             path="/admin/home"
@@ -124,10 +122,7 @@ const App = () => {
             }
           />
           <Route path="/verifyOtp" element={<VerifyOtpPage />} />
-          <Route
-            path="/editProfile"
-            element={<EditProfilePage /> }
-          />
+          <Route path="/editProfile" element={<EditProfilePage />} />
           <Route path="/forgotPassword" element={<ForgotPasswordPage />} />
           <Route path="/resetPassword" element={<ResetPasswordPage />} />
           <Route
@@ -153,13 +148,14 @@ const App = () => {
             }
           />
           <Route path="/settings" element={<SettingPage />} />
-          <Route path="/notification" element={<SendNotification userId={userId}/>}/>
-          {/* <Route
-            path="/skill"
-            element={authUser ? <SkillsPage /> : <Navigate to="/login" />}
-          /> */}
-          <Route path="/chat" element
-          ={ authUser?<ChatPage/>:<Navigate to="/login"/>}/>
+          <Route
+            path="/notification"
+            element={<SendNotification userId={userId} />}
+          />
+          <Route
+            path="/chat"
+            element={authUser ? <ChatPage /> : <Navigate to="/login" />}
+          />
         </Routes>
       </div>
       <Footer />
