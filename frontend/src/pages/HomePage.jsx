@@ -8,13 +8,17 @@ import { useSwapStore } from "../store/useSwapStore.js";
 import { useChatStore } from "../store/useChatStore.js"; // Chat store
 import ChatContainer from "../components/ChatContainer"; // Chat UI
 
-const HomePage = () => {
+const UsersPage = () => {
   const [users, setUsers] = useState([]);
   const { authUser } = useAuthStore();
   const navigate = useNavigate();
   const { setUserId } = useSwapStore();
   const { selectedUser, setSelectedUser } = useChatStore();
   const [isChatOpen, setIsChatOpen] = useState(false); // Track modal state
+  
+
+   
+  
 
   useEffect(() => {
     fetchUsers();
@@ -55,7 +59,9 @@ const HomePage = () => {
 
   return (
     <div className="container mx-auto py-20 p-8">
-      <h1 className="text-3xl font-bold mb-6 text-center">Users</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center"></h1>
+
+     
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {users.length > 0 ? (
@@ -149,4 +155,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default UsersPage;

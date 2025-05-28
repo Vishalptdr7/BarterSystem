@@ -10,3 +10,7 @@ export default {
     theme: ["light", "dart", "cupcake", "retro"],
   },
 };
+
+
+// tailwind.config.js
+

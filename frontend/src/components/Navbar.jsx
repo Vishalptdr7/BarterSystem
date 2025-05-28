@@ -26,19 +26,16 @@ const Navbar = () => {
           <h1 className="text-xl font-bold">BarterSystem</h1>
         </Link>
 
-        {/* Center - Navigation Links
         <nav className="hidden md:flex items-center gap-6 text-gray-700">
           <Link to="/" className="hover:text-indigo-600 transition">
-            Home
+            Users
           </Link>
-
-          <Link to="/about" className="hover:text-indigo-600 transition">
-            About
+        </nav>
+        <nav className="hidden md:flex items-center gap-6 text-gray-700">
+          <Link to="/user/mainhome" className="hover:text-indigo-600 transition">
+            MainHomePage
           </Link>
-          <Link to="/contact" className="hover:text-indigo-600 transition">
-            Contact
-          </Link>
-        </nav> */}
+        </nav>
 
         {/* Right - User Actions */}
         <div className="flex items-center gap-4">

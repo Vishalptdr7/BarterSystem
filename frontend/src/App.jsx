@@ -1,4 +1,4 @@
-import HomePage from "./pages/HomePage";
+import UsersPage from "./pages/HomePage";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
 import VerifyOtpPage from "./pages/OtpPage"; // Import VerifyOtpPage
@@ -26,6 +26,7 @@ import Sidebar from "./components/SideBar.jsx";
 import { useChatStore } from "./store/useChatStore.js";
 import ChatPage from "./pages/Cont.jsx";
 import { useCallback } from "react";
+import MainHomePage from "./pages/MainHomePage.jsx";
 const App = () => {
   const { selectedUser, setSelectedUser } = useChatStore();
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -60,6 +61,11 @@ const App = () => {
       <Navbar />
       <div className="flex-grow">
         <Routes>
+          <Route path="/user/mainhome" element={
+            <MainHomePage/>
+          }/>
+
+          
           <Route
             path="/admin/home"
             element={
@@ -75,7 +81,7 @@ const App = () => {
             path="/user/home"
             element={
               authUser && role === "user" ? (
-                <HomePage />
+                <UsersPage />
               ) : (
                 <Navigate to={authUser ? "/admin/home" : "/login"} />
               )
