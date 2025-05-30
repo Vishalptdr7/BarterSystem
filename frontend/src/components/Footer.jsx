@@ -65,9 +65,9 @@ const Footer = () => {
               <Link to="https://www.facebook.com/profile.php?id=100025162934889">
                 <Facebook className="w-5 h-5" />
               </Link>
-              <a href="#" className="hover:text-indigo-400 transition">
+              <Link to="https://x.com/VishalPati11689">
                 <Twitter className="w-5 h-5" />
-              </a>
+              </Link>
               <Link to="https://www.linkedin.com/in/vishal-patidar-234249286/">
                 <Linkedin className="w-5 h-5" />
               </Link>

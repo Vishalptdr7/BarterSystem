@@ -11,11 +11,11 @@ const Sidebar = () => {
   console.log(onlineUsers);
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
 
- useEffect(() => {
-   getUsers();
- }, []);
+useEffect(() => {
+    getUsers();
+}, []);
 
-   
+
  const filteredUsers = useMemo(
    () =>
      showOnlineOnly

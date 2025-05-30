@@ -29,6 +29,8 @@ import { useCallback } from "react";
 import MainHomePage from "./pages/MainHomePage.jsx";
 const App = () => {
   const { selectedUser, setSelectedUser } = useChatStore();
+
+  
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
   const { theme } = useThemeStore();
 
@@ -133,15 +135,15 @@ const App = () => {
           <Route path="/resetPassword" element={<ResetPasswordPage />} />
           <Route
             path="/aboutus"
-            element={authUser ? <AboutUs /> : <Navigate to="/login" />}
+            element={ <AboutUs /> }
           />
           <Route
             path="/privacy-policy"
-            element={authUser ? <PrivacyPolicy /> : <Navigate to="/login" />}
+            element={ <PrivacyPolicy />}
           />
           <Route
             path="/contact"
-            element={authUser ? <ContactUs /> : <Navigate to="/login" />}
+            element={ <ContactUs />}
           />
           <Route
             path="/profile/:userId"
