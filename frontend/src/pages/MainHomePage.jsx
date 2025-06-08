@@ -1,5 +1,6 @@
 import React from "react";
-
+import { Feature } from "../components/Feature";
+import { Content } from "../components/Content";
 const MainHomePage = () => {
   return (
     <div className="min-h-screen flex flex-col bg-base-100 text-base-content">
@@ -85,11 +86,8 @@ const MainHomePage = () => {
           seamless experience.
         </p>
       </section>
-
-      {/* Footer */}
-      <footer className="footer footer-center p-4 bg-neutral text-neutral-content mt-auto">
-        <p>© {new Date().getFullYear()} MyWebsite. All rights reserved.</p>
-      </footer>
+      <Content />
+      <Feature />
     </div>
   );
 };
