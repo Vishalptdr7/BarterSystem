@@ -18,7 +18,7 @@ export const useAuthStore = create((set, get) => ({
   checkAuth: async () => {
     try {
       const res = await axiosInstance.get("/users/current");
-      console.log(res.data.message.user_id);
+      console.log("authUser",res.data.message);
       if (res.data.statusCode === 200) {
         set({ authUser: res.data.message, userId: res.data.message.user_id });
         get().connectSocket();
@@ -39,6 +39,7 @@ export const useAuthStore = create((set, get) => ({
       set({ authUser: res.data.message }); // Reset authUser until OTP is verified
       get().connectSocket();
       toast.success("Account created successfully. OTP sent to your email.");
+      console.log("signUp",authUser)
     } catch (error) {
       toast.error(error.response?.data?.message || "Signup failed");
     } finally {
@@ -52,6 +53,7 @@ export const useAuthStore = create((set, get) => ({
       if (res.data.success) {
         set({ authUser: res.data.user }); // Store the returned user data
         get().connectSocket();
+        console.log(authUser)
       } else {
         toast.error(res.data.message || "OTP verification failed");
       }
@@ -60,16 +62,18 @@ export const useAuthStore = create((set, get) => ({
       toast.error("OTP verification failed");
     }
   },
-  login: async (data) => {
+  login: async (formData) => {
     set({ isLoggingIn: true });
     try {
-      const res = await axiosInstance.post("/users/login", data);
+      const res = await axiosInstance.post("/users/login", formData);
       set({ authUser: res.data.data.message });
 
       toast.success("Logged in successfully");
       get().connectSocket();
+      console.log("login",authUser);
     } catch (error) {
       toast.error(error.response.data.message);
+      console.log("login error",error.message);
     } finally {
       set({ isLoggingIn: false });
     }
@@ -96,6 +100,7 @@ export const useAuthStore = create((set, get) => ({
       set({ authUser: email });
       get().connectSocket();
       toast.success("OTP sent again to your email.");
+      console.log("resendOtp",authUser);
     } catch (error) {
       console.error("Error in resending OTP:", error);
       toast.error(error.response?.data?.message || "Failed to resend OTP");

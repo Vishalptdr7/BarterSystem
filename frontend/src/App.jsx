@@ -39,7 +39,10 @@ const App = () => {
   const checkAuthStatus = useCallback(() => {
     checkAuth();
   }, [checkAuth]);
-
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+  
   useEffect(() => {
     checkAuthStatus();
     setSelectedUser(null); // Reset selectedUser when navigating back to home page
@@ -57,7 +60,7 @@ const App = () => {
 
   const role = authUser?.role || "";
 
-  console.log(authUser);
+  
   return (
     <div data-theme={theme} className="flex flex-col min-h-screen">
       <Navbar />

@@ -27,28 +27,76 @@ const sendOTP = async (email, otp) => {
     to: email,
     subject: "🔐 Your One-Time Password (OTP) - BarterSystem",
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-        <h2 style="color: #4F46E5; text-align: center;">🔑 Your OTP Code</h2>
-        <p style="font-size: 16px; color: #333;">
-          Hello, <br /><br />
-          You requested a One-Time Password (OTP) to verify your identity. Please use the OTP below to proceed:
-        </p>
-        <div style="text-align: center; font-size: 24px; font-weight: bold; color: #4F46E5; background: #F3F4F6; padding: 10px; border-radius: 8px; display: inline-block;">
-          ${otp}
-        </div>
-        <p style="font-size: 14px; color: #555; margin-top: 20px;">
-          This OTP is valid for <strong>5 minutes</strong>. Do not share it with anyone.
-        </p>
-        <p style="font-size: 14px; color: #777;">
-          If you did not request this OTP, please ignore this email or contact support.
-        </p>
-        <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;" />
-        <p style="text-align: center; font-size: 12px; color: #888;">
-          &copy; ${new Date().getFullYear()} BarterSystem. All rights reserved.
-        </p>
-      </div>
+      <section style="max-width: 600px; margin: auto; background-color: #ffffff; color: #1f2937; font-family: Arial, sans-serif; padding: 32px; border-radius: 12px;">
+        <header style="text-align: center;">
+          <img src="https://merakiui.com/images/full-logo.svg" alt="BarterSystem Logo" style="height: 32px; margin: auto;">
+        </header>
+  
+        <main style="margin-top: 24px;">
+          <h2 style="color: #1f2937;">Hi there,</h2>
+  
+          <p style="margin-top: 12px; line-height: 1.6; color: #4b5563;">
+            This is your verification code:
+          </p>
+  
+          <div style="display: flex; gap: 12px; margin-top: 16px;">
+            ${otp
+              .toString()
+              .split("")
+              .map(
+                (digit) => `
+              <p style="
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                font-weight: 600;
+                color: #3b82f6;
+                border: 1px solid #3b82f6;
+                border-radius: 8px;
+              ">
+                ${digit}
+              </p>`
+              )
+              .join("")}
+          </div>
+  
+          <p style="margin-top: 16px; line-height: 1.6; color: #4b5563;">
+            This code will only be valid for the next <strong>5 minutes</strong>. If this code does not work, you can use this login verification link:
+          </p>
+  
+          <a href="#" style="
+            display: inline-block;
+            margin-top: 24px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #ffffff;
+            background-color: #3b82f6;
+            border-radius: 8px;
+            text-decoration: none;
+          ">Verify email</a>
+  
+          <p style="margin-top: 24px; color: #4b5563;">
+            Thanks, <br>
+            BarterSystem Team
+          </p>
+        </main>
+  
+        <footer style="margin-top: 32px; font-size: 13px; color: #6b7280;">
+          <p>
+            This email was sent to <a href="#" style="color: #3b82f6; text-decoration: underline;">${email}</a>.
+            If you didn't request this, you can safely ignore it.
+          </p>
+  
+          <p style="margin-top: 12px;">© ${new Date().getFullYear()} BarterSystem. All Rights Reserved.</p>
+        </footer>
+      </section>
     `,
   };
+  
 
   try {
     await transporter.sendMail(mailOptions);
@@ -127,15 +175,23 @@ export const register = async (req, res) => {
     const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
 
     // Insert the user and OTP
-    await db.execute(
+    const user=await db.execute(
       "INSERT INTO users (name, email, password, otp, otp_expires,role) VALUES (?, ?, ?, ?, ?,?)",
       [name, email, hashedPassword, otp, otpExpires,role ||"user"]
     );
 
     // Send OTP email
     await sendOTP(email, otp);
-
-    res.status(201).json({ message: "User registered. OTP sent to email." });
+    return res.status(200).json({
+      statusCode: 200,
+      success: true,
+      data: {
+        user: user,
+        message: "User registered. OTP sent to email.",
+      },
+      errors: [],
+    });
+    
   } catch (error) {
     console.error("Registration error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
@@ -175,7 +231,7 @@ export const resendOtp = async (req, res) => {
 
     await sendOTP(email, otp);
 
-    return res.status(200).json({ message: "OTP resent successfully" });
+    return res.status(200).json({ message: "OTP resent successfully" ,email:email, otp: otp });
   } catch (error) {
     console.error("Resend OTP error:", error);
     return res
@@ -227,7 +283,7 @@ export const verifyOTP = async (req, res) => {
 return res.status(200).json({
   success: true,
   message: "Email verified successfully",
-  user: { email: user[0].email, verified: true }, // Return user data
+  user: newUser, // Return user data
 });
 
   } catch (error) {
@@ -387,7 +443,7 @@ export const logout = asyncHandler(async (req, res) => {
     }
 
     // Clear cookies
-    res
+    return res
       .status(200)
       .clearCookie("accessToken", {
         httpOnly: true,

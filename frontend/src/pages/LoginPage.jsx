@@ -1,22 +1,26 @@
-import { useState } from "react";
+import { useState ,useEffect} from "react";
 import { useAuthStore } from "../store/useAuthStore.js";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login, isLoggingIn } = useAuthStore();
-
+  const { login, isLoggingIn,authUser } = useAuthStore();
+  useEffect(() => {
+    if (authUser) {
+      navigate("/user/home");
+    }
+  }, [authUser, navigate]);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
-    login(formData);
-    navigate("/");
+    await login(formData);
+    
   };
 
   return (
