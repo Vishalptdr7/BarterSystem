@@ -1,16 +1,22 @@
+import React from "react";
+import { Typography } from "@material-tailwind/react";
+
 export const Feature = () => {
   return (
     <section className="bg-white dark:bg-gray-300">
-      <div className="container px-6 py-10 mx-auto">
-        <div className="lg:flex lg:items-center gap-12">
+      <div className="container px-4 sm:px-6 md:px-10 py-8 sm:py-10 mx-auto">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-8 lg:gap-12">
           {/* Left Content */}
-          <div className="w-full space-y-12 lg:w-1/2">
+          <div className="w-full lg:w-1/2 space-y-10 sm:space-y-12">
             {/* Heading */}
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 capitalize lg:text-4xl dark:text-white leading-tight">
-                Explore our <br className="hidden sm:block" />{" "}
+              <Typography
+                variant="h2"
+                className="text-2xl sm:text-3xl font-bold text-gray-900 capitalize lg:text-4xl dark:text-white leading-tight"
+              >
+                Explore our <br className="hidden sm:block" />
                 <span className="text-blue-600">Awesome Components</span>
-              </h1>
+              </Typography>
               <div className="mt-3 flex items-center space-x-1">
                 <span className="w-20 h-1 bg-blue-500 rounded-full"></span>
                 <span className="w-4 h-1 bg-blue-500 rounded-full"></span>
@@ -19,13 +25,13 @@ export const Feature = () => {
             </div>
 
             {/* Features */}
-            <div className="space-y-8">
+            <div className="space-y-6 sm:space-y-8">
               {/* Feature 1 */}
-              <div className="flex items-start space-x-4">
+              <div className="flex items-start space-x-3 sm:space-x-4">
                 <div className="p-3 bg-blue-100 text-blue-600 rounded-xl dark:bg-blue-500 dark:text-white">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="w-6 h-6"
+                    className="w-5 h-5 sm:w-6 sm:h-6"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -39,10 +45,13 @@ export const Feature = () => {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-800 dark:text-black">
+                  <Typography
+                    variant="h5"
+                    className="text-base sm:text-lg font-semibold text-gray-800 dark:text-black"
+                  >
                     Real-time Chat
-                  </h2>
-                  <p className="mt-2 text-black-600 dark:text-black-300">
+                  </Typography>
+                  <p className="mt-1 sm:mt-2 text-black-700 dark:text-black-300 text-sm sm:text-base">
                     Instantly communicate with other users through a smooth,
                     real-time messaging system. Whether you're planning a skill
                     exchange or simply networking, our chat keeps you connected
@@ -52,11 +61,11 @@ export const Feature = () => {
               </div>
 
               {/* Feature 2 */}
-              <div className="flex items-start space-x-4">
+              <div className="flex items-start space-x-3 sm:space-x-4">
                 <div className="p-3 bg-blue-100 text-blue-600 rounded-xl dark:bg-blue-500 dark:text-white">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="w-6 h-6"
+                    className="w-5 h-5 sm:w-6 sm:h-6"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -70,10 +79,13 @@ export const Feature = () => {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-black-800 dark:text-black">
+                  <Typography
+                    variant="h5"
+                    className="text-base sm:text-lg font-semibold text-gray-800 dark:text-black"
+                  >
                     Group Collaboration Tools
-                  </h2>
-                  <p className="mt-2 text-black-600 dark:text-black-300">
+                  </Typography>
+                  <p className="mt-1 sm:mt-2 text-black-700 dark:text-black-300 text-sm sm:text-base">
                     Collaborate with multiple users through group chats and
                     shared exchanges. Perfect for learning circles, project
                     teams, or hobby groups.
@@ -82,11 +94,11 @@ export const Feature = () => {
               </div>
 
               {/* Feature 3 */}
-              <div className="flex items-start space-x-4">
+              <div className="flex items-start space-x-3 sm:space-x-4">
                 <div className="p-3 bg-blue-100 text-blue-600 rounded-xl dark:bg-blue-500 dark:text-white">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="w-6 h-6"
+                    className="w-5 h-5 sm:w-6 sm:h-6"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -106,10 +118,13 @@ export const Feature = () => {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-black-800 dark:text-black">
+                  <Typography
+                    variant="h5"
+                    className="text-base sm:text-lg font-semibold text-gray-800 dark:text-black"
+                  >
                     Smart Notifications
-                  </h2>
-                  <p className="mt-2 text-black-600 dark:text-black-300">
+                  </Typography>
+                  <p className="mt-1 sm:mt-2 text-black-700 dark:text-black-300 text-sm sm:text-base">
                     Stay updated with personalized notifications. Whether it’s a
                     new message, a swap request, or a review, you’ll never miss
                     important updates.
@@ -120,20 +135,17 @@ export const Feature = () => {
           </div>
 
           {/* Right Image */}
-          <div className="hidden lg:flex lg:items-center lg:w-1/2 lg:justify-center">
+          <div className="w-full md:w-1/2 flex justify-center md:justify-end">
             <img
-              className="object-cover w-full h-96 rounded-2xl shadow-xl"
+              className="object-cover w-full max-w-md max-h-72 sm:max-h-96 rounded-2xl shadow-xl"
               src="https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?ixlib=rb-1.2.1&auto=format&fit=crop&w=755&q=80"
               alt="Skill Exchange"
             />
           </div>
         </div>
 
-        <hr className="my-12 border-gray-200 dark:border-gray-700" />
-
-        
+        <hr className="my-2 border-gray-200 dark:border-gray-700" />
       </div>
     </section>
   );
 };
-

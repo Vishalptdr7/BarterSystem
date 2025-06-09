@@ -1,16 +1,16 @@
-import daisy from 'daisyui';
+// tailwind.config.js
+const withMT = require("@material-tailwind/react/utils/withMT");
+const daisy = require("daisyui");
+
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = withMT({
+  darkMode: "class",
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {},
   },
   plugins: [daisy],
-  daisy: {
-    theme: ["light", "dart", "cupcake", "retro"],
+  daisyui: {
+    themes: ["light", "dart", "cupcake", "retro"], // Corrected 'daisy' to 'daisyui' and 'theme' to 'themes'
   },
-};
-
-
-// tailwind.config.js
-
+});

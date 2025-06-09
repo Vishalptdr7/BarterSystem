@@ -170,17 +170,17 @@ export const Content = () => {
         <div className="mt-10 lg:hidden">
           <img
             className="object-cover w-full h-56 rounded shadow-lg sm:h-80"
-            src="https://images.pexels.com/photos/927022/pexels-photo-927022.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=3&amp;h=750&amp;w=1260"
-            alt=""
+            src="https://images.pexels.com/photos/927022/pexels-photo-927022.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260"
+            alt="Professional collaboration"
           />
         </div>
 
         {/* Desktop image */}
-        <div className="hidden lg:block absolute right-0 top-0 w-full lg:w-1/2 h-full">
+        <div className="hidden lg:flex absolute right-0 top-0 w-full lg:w-1/2 h-full">
           <img
             className="object-cover w-full h-full rounded shadow-lg"
-            src="https://images.pexels.com/photos/927022/pexels-photo-927022.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=3&amp;h=750&amp;w=1260"
-            alt=""
+            src="https://images.pexels.com/photos/927022/pexels-photo-927022.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260"
+            alt="Skill Exchange Platform"
           />
         </div>
       </div>
