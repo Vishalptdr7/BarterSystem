@@ -9,7 +9,7 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
   const internalClickRef = useRef(false);
-
+  const role=authUser?.role || "user";
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -76,14 +76,23 @@ const Navbar = () => {
             to="/"
             className="text-gray-700 hover:text-blue-700 dark:text-gray-200 dark:hover:text-blue-500"
           >
-            Users
+            Home
           </Link>
-          <Link
-            to="/user/mainhome"
-            className="text-gray-700 hover:text-blue-700 dark:text-gray-200 dark:hover:text-blue-500"
-          >
-            MainHomePage
-          </Link>
+          {role === "user" ? (
+            <Link
+              to="/users"
+              className="text-gray-700 hover:text-blue-700 dark:text-gray-200 dark:hover:text-blue-500"
+            >
+              Users
+            </Link>
+          ) : (
+            <Link
+              to="/admin"
+              className="text-gray-700 hover:text-blue-700 dark:text-gray-200 dark:hover:text-blue-500"
+            >
+              Users
+            </Link>
+          )}
         </div>
 
         {/* Right Side Auth Actions (desktop) */}
@@ -162,17 +171,23 @@ const Navbar = () => {
               setMenuOpen(false);
             }}
           >
-            Users
+            Home
           </Link>
           <Link
-            to="/user/mainhome"
+            to="/users"
             className="block text-gray-700 hover:text-blue-700 dark:text-gray-200 dark:hover:text-blue-500"
             onClick={() => {
               internalClickRef.current = true;
               setMenuOpen(false);
             }}
           >
-            MainHomePage
+            {authUser?.role === "admin" ? (
+              <div>AdminPage</div>
+            ) : authUser ? (
+              <div>Users</div>
+            ) : (
+              ""
+            )}
           </Link>
 
           {authUser ? (

@@ -31,9 +31,14 @@ const UsersPage = () => {
   const fetchUsers = async () => {
     try {
       const { data } = await axiosInstance.get("/users/getAllUsers");
-      setUsers(data.filter((user) => user.user_id !== authUser?.user_id));
+      setUsers(data); // Backend already excludes the logged-in user
     } catch (error) {
-      toast.error("Failed to fetch users.");
+      if (error.response?.status === 401) {
+        toast.error("Unauthorized. Please login again.");
+        navigate("/login");
+      } else {
+        toast.error("Failed to fetch users.");
+      }
     } finally {
       setLoading(false);
     }
@@ -57,7 +62,7 @@ const UsersPage = () => {
     toast.success(`Viewing profile of user ${userId}`);
   };
 
-  if (users.length === 0) return <UsersPageSkeleton showChat={isChatOpen} />;
+  if (loading) return <UsersPageSkeleton showChat={isChatOpen} />;
 
   return (
     <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 to-indigo-100">

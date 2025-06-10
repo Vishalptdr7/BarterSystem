@@ -3,7 +3,7 @@ import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import { Home, Users, MessageSquare } from "lucide-react";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton";
-
+import { Link } from "lucide-react";
 const Sidebar = () => {
   const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading } =
     useChatStore();
@@ -26,16 +26,18 @@ const Sidebar = () => {
   if (isUsersLoading) return <SidebarSkeleton />;
 
   return (
-    <aside className="flex h-screen">
+    <aside className="flex h-screen ">
       {/* Compact vertical nav */}
-      <div className="flex flex-col items-center w-16 h-full py-4 space-y-6 bg-white dark:bg-gray-900 dark:border-gray-700 border-r">
-        <a href="#">
-          <img
-            className="w-auto h-6"
-            src="https://merakiui.com/images/logo.svg"
-            alt="Logo"
-          />
-        </a>
+      <div className="flex flex-col items-center w-16 h-full py-24  space-y-6 bg-white dark:bg-gray-900 dark:border-gray-700 border-r">
+        <Link>
+          
+            <img
+              className="w-auto h-6"
+              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ077k7uCCqVLzAQ7doJ8hMPg8Fxs6R7H_rJg&s"
+              alt=""
+            />
+          
+        </Link>
 
         {[Home, Users, MessageSquare].map((Icon, index) => (
           <a
@@ -49,7 +51,7 @@ const Sidebar = () => {
       </div>
 
       {/* Expanded sidebar for tablets and up */}
-      <div className="hidden sm:flex flex-col w-64 max-w-xs h-full border-r border-base-300 bg-white dark:bg-gray-900 p-4">
+      <div className="hidden sm:flex flex-col w-64 max-w-xs h-full border-r border-base-300 bg-white dark:bg-gray-900 p-11 ">
         <div className="border-b pb-3">
           <div className="flex items-center gap-2 text-gray-900 dark:text-white">
             <Users className="size-5" />

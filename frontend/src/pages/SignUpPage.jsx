@@ -8,7 +8,6 @@ const SignUpPage = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("user");
   const { signup, isSigningUp } = useAuthStore();
   const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
@@ -18,7 +17,7 @@ const SignUpPage = () => {
     e.preventDefault();
     try {
       // Wait for signup to finish before redirecting
-      await signup({ name, email, password, role });
+      await signup({ name, email, password });
 
       // Pass email to VerifyOtpPage using state in the navigate
       navigate("/verifyOtp", { state: { email ,password} });
@@ -98,23 +97,7 @@ const SignUpPage = () => {
               </button>
             </div>
           </div>
-          <div>
-            <label
-              htmlFor="role"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Role
-            </label>
-            <select
-              id="role"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-200 ease-in-out"
-            >
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
+          
           <button
             type="submit"
             disabled={isSigningUp}

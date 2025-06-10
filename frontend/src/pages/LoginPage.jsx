@@ -8,7 +8,7 @@ const LoginPage = () => {
   const { login, isLoggingIn,authUser } = useAuthStore();
   useEffect(() => {
     if (authUser) {
-      navigate("/user/home");
+      navigate("/");
     }
   }, [authUser, navigate]);
   const [showPassword, setShowPassword] = useState(false);

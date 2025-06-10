@@ -4,7 +4,7 @@ import LoginPage from "./pages/LoginPage";
 import VerifyOtpPage from "./pages/OtpPage"; // Import VerifyOtpPage
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer"; // Import Footer component
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "./store/useAuthStore.js";
 import { useEffect } from "react";
 import EditProfilePage from "./pages/EditProfilePage";
@@ -22,7 +22,6 @@ import SettingPage from "./pages/SettingPage.jsx";
 import { useThemeStore } from "./store/useThemeStore";
 import SendNotification from "./components/SendNotification.jsx";
 import { useSwapStore } from "./store/useSwapStore.js";
-import Sidebar from "./components/SideBar.jsx";
 import { useChatStore } from "./store/useChatStore.js";
 import ChatPage from "./pages/Cont.jsx";
 import { useCallback } from "react";
@@ -30,23 +29,33 @@ import MainHomePage from "./pages/MainHomePage.jsx";
 const App = () => {
   const { selectedUser, setSelectedUser } = useChatStore();
 
-  
+  const location = useLocation();
+
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
+  console.log("app.jsx file",authUser)
   const { theme } = useThemeStore();
 
   const { userId } = useSwapStore();
 
-  const checkAuthStatus = useCallback(() => {
-    checkAuth();
-  }, [checkAuth]);
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+  // const checkAuthStatus = useCallback(() => {
+  //   checkAuth();
+  // }, [checkAuth]);
+  // useEffect(() => {
+  //   checkAuth();
+  // }, []);
   
+  // useEffect(() => {
+  //   checkAuthStatus();
+  //   setSelectedUser(null); // Reset selectedUser when navigating back to home page
+  // }, [checkAuthStatus, setSelectedUser]);
   useEffect(() => {
-    checkAuthStatus();
-    setSelectedUser(null); // Reset selectedUser when navigating back to home page
-  }, [checkAuthStatus, setSelectedUser]);
+    checkAuth();
+  }, []);
+
+  // ✅ Reset selectedUser only when location changes (no infinite loop)
+  useEffect(() => {
+    setSelectedUser(null);
+  }, [location.pathname]);
 
   if (isCheckingAuth && !authUser)
     return (
@@ -66,88 +75,38 @@ const App = () => {
       <Navbar />
       <div className="flex-grow">
         <Routes>
-          <Route path="/user/mainhome" element={
-            <MainHomePage/>
-          }/>
+          <Route path="/" element={<MainHomePage />} />
 
-          
           <Route
-            path="/admin/home"
+            path="/admin"
             element={
               authUser && role === "admin" ? (
                 <AdminHomePage />
               ) : (
-                <Navigate to={authUser ? "/user/home" : "/login"} />
+                <Navigate to={authUser ? "/users" : "/"} />
               )
             }
           />
 
           <Route
-            path="/user/home"
+            path="/users"
             element={
               authUser && role === "user" ? (
                 <UsersPage />
               ) : (
-                <Navigate to={authUser ? "/admin/home" : "/login"} />
+                <Navigate to={authUser ? "/admin" : "/"} />
               )
             }
           />
-
-          <Route
-            path="/"
-            element={
-              authUser ? (
-                role === "admin" ? (
-                  <Navigate to="/admin/home" />
-                ) : (
-                  <Navigate to="/user/home" />
-                )
-              ) : (
-                <Navigate to="/login" />
-              )
-            }
-          />
-
-          <Route
-            path="/register"
-            element={
-              !authUser ? (
-                <SignUpPage />
-              ) : (
-                <Navigate
-                  to={role === "admin" ? "/admin/home" : "/user/home"}
-                />
-              )
-            }
-          />
-          <Route
-            path="/login"
-            element={
-              !authUser ? (
-                <LoginPage />
-              ) : (
-                <Navigate
-                  to={role === "admin" ? "/admin/home" : "/user/home"}
-                />
-              )
-            }
-          />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<SignUpPage/>} />
           <Route path="/verifyOtp" element={<VerifyOtpPage />} />
           <Route path="/editProfile" element={<EditProfilePage />} />
           <Route path="/forgotPassword" element={<ForgotPasswordPage />} />
           <Route path="/resetPassword" element={<ResetPasswordPage />} />
-          <Route
-            path="/aboutus"
-            element={ <AboutUs /> }
-          />
-          <Route
-            path="/privacy-policy"
-            element={ <PrivacyPolicy />}
-          />
-          <Route
-            path="/contact"
-            element={ <ContactUs />}
-          />
+          <Route path="/aboutus" element={<AboutUs />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/contact" element={<ContactUs />} />
           <Route
             path="/profile/:userId"
             element={authUser ? <UserProfile /> : <Navigate to="/login" />}
@@ -169,8 +128,7 @@ const App = () => {
           />
         </Routes>
       </div>
-      <Footer />
-      {/* Footer stays at the bottom */}
+      {location.pathname !== "/chat" && <Footer />}
       <Toaster />
     </div>
   );

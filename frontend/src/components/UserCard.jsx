@@ -12,7 +12,7 @@ const UserCard = ({ user, onSwap, onChat, onProfile }) => {
           />
         ) : (
           <div className="w-16 h-16 rounded-full bg-blue-gray-300 flex items-center justify-center text-white text-xl font-bold">
-            {user.name.charAt(0).toUpperCase()}
+            {user.name?.charAt(0).toUpperCase() || "U"}
           </div>
         )}
         <div>
@@ -31,7 +31,8 @@ const UserCard = ({ user, onSwap, onChat, onProfile }) => {
           <ul className="list-disc list-inside text-sm text-blue-gray-600">
             {user.skills.map((skill, idx) => (
               <li key={`${skill.skill_id}-${idx}`}>
-                {skill.skill_name} ({skill.proficiency_level})
+                {skill.skill_name || "Unnamed Skill"} (
+                {skill.proficiency_level || "N/A"})
               </li>
             ))}
           </ul>

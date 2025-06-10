@@ -40,17 +40,15 @@ const VerifyOtpPage = () => {
     setIsVerifying(true);
 
     try {
+      // First verify OTP
       await verifyOtp({ email, otp });
-      setTimeout(() => {
-        if (authUser) {
-          console.log("User logged in successfully", authUser);
-          login(formData);
-          toast.success("Email verified successfully.");
-          navigate("/"); // Redirect to home page
-        } else {
-          toast.error("User data not found after OTP verification");
-        }
-      }, 500); // Delay to ensure authUser is updated
+      toast.success("Email verified successfully");
+
+      // Then immediately log in
+      await login(formData);
+
+      // Navigate on success
+      navigate("/");
     } catch (error) {
       console.error("Error in OTP verification:", error);
       toast.error("OTP verification failed");
@@ -58,6 +56,7 @@ const VerifyOtpPage = () => {
       setIsVerifying(false);
     }
   };
+  
 
   const handleResendOtp = async () => {
     if (!email) {

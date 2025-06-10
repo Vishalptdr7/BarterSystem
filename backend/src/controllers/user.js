@@ -155,7 +155,7 @@ const generateAccessTokenAndRefreshToken = async (userId) => {
 // ✅ Register Function
 export const register = async (req, res) => {
   try {
-    const { name, email, password ,role} = req.body;
+    const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
@@ -175,28 +175,29 @@ export const register = async (req, res) => {
     const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
 
     // Insert the user and OTP
-    const user=await db.execute(
-      "INSERT INTO users (name, email, password, otp, otp_expires,role) VALUES (?, ?, ?, ?, ?,?)",
-      [name, email, hashedPassword, otp, otpExpires,role ||"user"]
+    const [result] = await db.execute(
+      "INSERT INTO users (name, email, password, otp, otp_expires) VALUES (?, ?, ?, ?, ?)",
+      [name, email, hashedPassword, otp, otpExpires]
     );
 
-    // Send OTP email
+    // Send OTP email after successful DB insert
     await sendOTP(email, otp);
+
     return res.status(200).json({
       statusCode: 200,
       success: true,
       data: {
-        user: user,
+        user: { id: result.insertId, name, email },
         message: "User registered. OTP sent to email.",
       },
       errors: [],
     });
-    
   } catch (error) {
     console.error("Registration error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 
 
@@ -259,7 +260,6 @@ export const verifyOTP = async (req, res) => {
 
     const { otp: storedOTP, otp_expires } = user[0];
 
-
     if (!storedOTP) {
       return res
         .status(400)
@@ -273,19 +273,27 @@ export const verifyOTP = async (req, res) => {
     }
 
     if (storedOTP.trim() !== otp.trim()) {
+      console.log("lll", "otp not matches");
       return res.status(400).json({ message: "Invalid OTP" });
     }
 
-    const newUser=await db.execute(
+    await db.execute(
       "UPDATE users SET otp = NULL, otp_expires = NULL, verified = 1 WHERE email = ?",
       [email]
     );
-return res.status(200).json({
-  success: true,
-  message: "Email verified successfully",
-  user: newUser, // Return user data
-});
 
+    const [updatedUser] = await db.execute(
+      "SELECT * FROM users WHERE email = ?",
+      [email]
+    );
+
+    console.log("user verified ", updatedUser);
+
+    return res.status(200).json({
+      success: true,
+      message: "Email verified successfully",
+      user: updatedUser[0], // Return actual user data
+    });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ message: "Server error" });
@@ -295,41 +303,27 @@ return res.status(200).json({
 
 
 
+
 // ✅ Login Function
 
 export const login = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { email, password } = req.body;
 
-    // Validate that at least one of email or username is provided
-    if (!username && !email) {
+    // Validate that email is provided
+    if (!email) {
       return res.status(400).json({
         statusCode: 400,
         success: false,
         data: null,
-        errors: ["Username or email is required"],
+        errors: ["Email is required"],
       });
     }
 
-    // Prepare the query parameters
-    const queryParams = [];
-    let queryString = "SELECT * FROM users WHERE";
-
-    if (email) {
-      queryString += " email = ?";
-      queryParams.push(email);
-    }
-
-    if (username) {
-      if (email) {
-        queryString += " OR";
-      }
-      queryString += " username = ?";
-      queryParams.push(username);
-    }
-
-    // Query to find the user by either email or username
-    const [user] = await db.execute(queryString, queryParams);
+    // Query to find the user by email
+    const [user] = await db.execute("SELECT * FROM users WHERE email = ?", [
+      email,
+    ]);
 
     // Check if user exists
     if (user.length === 0) {
@@ -341,7 +335,7 @@ export const login = async (req, res) => {
       });
     }
 
-    const { user_id, name, password: hashedPassword, verified,role } = user[0];
+    const { user_id, name, password: hashedPassword, verified, role } = user[0];
 
     // Check if the user's email is verified
     if (!verified) {
@@ -369,17 +363,16 @@ export const login = async (req, res) => {
       await generateAccessTokenAndRefreshToken(user_id);
 
     // Update the refresh token in the database
-    await db.execute("UPDATE users SET refreshToken=?,accessToken=? WHERE user_id = ?", [
-      refreshToken,
-     accessToken,
-      user_id,
-    ]);
+    await db.execute(
+      "UPDATE users SET refreshToken=?, accessToken=? WHERE user_id = ?",
+      [refreshToken, accessToken, user_id]
+    );
 
     // Prepare the response object
     const loggedUser = {
       user_id,
       name,
-      email: user[0].email, // Add other fields you want in the response
+      email: user[0].email,
     };
 
     // Cookie options for tokens
@@ -387,6 +380,8 @@ export const login = async (req, res) => {
       httpOnly: true,
       secure: true, // Ensure this is set to true if you're using HTTPS
     };
+
+    console.log(loggedUser);
 
     // Return the response with status 200, cookies, and formatted data
     return res
@@ -398,7 +393,7 @@ export const login = async (req, res) => {
         success: true,
         data: {
           user: loggedUser,
-          role:role,
+          role: role,
           refreshToken,
           accessToken,
           message: "Logged in successfully",
@@ -714,18 +709,28 @@ export  const editProfile = asyncHandler(async (req, res) => {
 // Get All Users with Skills
 export const getAllUsers = asyncHandler(async (req, res) => {
   const loggedInUserId = req.user.user_id; // Get the logged-in user's ID
-  console.log(loggedInUserId)
+  console.log("get all users ", loggedInUserId);
+
+  if (!loggedInUserId) {
+    return res
+      .status(401)
+      .json({ message: "Unauthorized: Invalid user token" });
+  }
+
   const query = `
     SELECT 
         u.user_id, u.name, u.email, u.location, u.bio, u.role, u.profile_pic, u.created_at,
-        JSON_ARRAYAGG(
-            JSON_OBJECT(
-                'user_skill_id', us.user_skill_id,
-                'skill_id', s.skill_id,
-                'skill_name', s.skill_name,
-                'description', s.description,
-                'proficiency_level', us.proficiency_level
-            )
+        COALESCE(
+          JSON_ARRAYAGG(
+              JSON_OBJECT(
+                  'user_skill_id', us.user_skill_id,
+                  'skill_id', s.skill_id,
+                  'skill_name', s.skill_name,
+                  'description', s.description,
+                  'proficiency_level', us.proficiency_level
+              )
+          ),
+          JSON_ARRAY()
         ) AS skills
     FROM users u
     LEFT JOIN user_skills us ON u.user_id = us.user_id
@@ -736,7 +741,7 @@ export const getAllUsers = asyncHandler(async (req, res) => {
 
   const [users] = await pool.query(query, [loggedInUserId]);
 
-  res.json(users);
+  return res.json(users);
 });
 
 

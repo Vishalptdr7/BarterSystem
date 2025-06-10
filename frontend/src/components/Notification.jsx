@@ -9,9 +9,9 @@ const Notification = ({ userId }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
+  // useEffect(() => {
+  //   fetchNotifications();
+  // }, []);
 
   // Fetch user notifications
   const fetchNotifications = async () => {

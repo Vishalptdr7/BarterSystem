@@ -18,7 +18,7 @@ export const useAuthStore = create((set, get) => ({
   checkAuth: async () => {
     try {
       const res = await axiosInstance.get("/users/current");
-      console.log("authUser",res.data.message);
+      console.log("checkauth", res.data.message);
       if (res.data.statusCode === 200) {
         set({ authUser: res.data.message, userId: res.data.message.user_id });
         get().connectSocket();
@@ -32,48 +32,58 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  signup: async (data) => {
+  signup: async (formData) => {
     set({ isSigningUp: true });
     try {
-      const res = await axiosInstance.post("/users/register", data);
-      set({ authUser: res.data.message }); // Reset authUser until OTP is verified
-      get().connectSocket();
-      toast.success("Account created successfully. OTP sent to your email.");
-      console.log("signUp",authUser)
+      const res = await axiosInstance.post("/users/register", formData);
+  
+      if (!res.data.success) {
+        throw new Error(res.data.message || "Signup failed");
+      }
+  
+      toast.success("Registered successfully. Check your email for OTP.");
     } catch (error) {
       toast.error(error.response?.data?.message || "Signup failed");
+      throw error; // Ensure caller (SignUpPage) knows it failed
     } finally {
       set({ isSigningUp: false });
     }
-  },
+  }
+,  
 
-  verifyOtp: async (data) => {
-    try {
-      const res = await axiosInstance.post("/users/verifyOtp", data);
-      if (res.data.success) {
-        set({ authUser: res.data.user }); // Store the returned user data
-        get().connectSocket();
-        console.log(authUser)
-      } else {
-        toast.error(res.data.message || "OTP verification failed");
-      }
-    } catch (error) {
-      console.error("Error during OTP verification:", error);
-      toast.error("OTP verification failed");
-    }
-  },
+verifyOtp: async ({ email, otp }) => {
+  set({ isVerifying: true });
+  try {
+    const res = await axiosInstance.post("/users/verifyOtp", { email, otp });
+    toast.success(res.data.message);
+
+    // Save verified user to authUser (optional)
+    set({ authUser: res.data.user });
+
+    console.log("User logged in successfully", get().authUser); // ✅ FIXED
+  } catch (error) {
+    toast.error(error.response?.data?.message || "OTP verification failed");
+    console.error("Error during OTP verification:", error);
+    throw error;
+  } finally {
+    set({ isVerifying: false });
+  }
+},
+
   login: async (formData) => {
     set({ isLoggingIn: true });
     try {
       const res = await axiosInstance.post("/users/login", formData);
-      set({ authUser: res.data.data.message });
+
+      // ✅ Properly store user object (not just message string)
+      set({ authUser: res.data.data.user ,userId: res.data.data.user.user_id });
 
       toast.success("Logged in successfully");
       get().connectSocket();
-      console.log("login",authUser);
+      console.log("login", res.data.data.user);
     } catch (error) {
-      toast.error(error.response.data.message);
-      console.log("login error",error.message);
+      toast.error(error.response?.data?.errors?.[0] || "Login failed");
+      console.log("login error", error.message);
     } finally {
       set({ isLoggingIn: false });
     }
@@ -82,7 +92,7 @@ export const useAuthStore = create((set, get) => ({
   logout: async () => {
     try {
       await axiosInstance.post("/users/logout");
-      set({ authUser: null });
+      set({ authUser: null ,userId:null});
       toast.success("Logged out successfully");
       get().disconnectSocket();
     } catch (error) {
@@ -100,7 +110,7 @@ export const useAuthStore = create((set, get) => ({
       set({ authUser: email });
       get().connectSocket();
       toast.success("OTP sent again to your email.");
-      console.log("resendOtp",authUser);
+      console.log("resendOtp", authUser);
     } catch (error) {
       console.error("Error in resending OTP:", error);
       toast.error(error.response?.data?.message || "Failed to resend OTP");
