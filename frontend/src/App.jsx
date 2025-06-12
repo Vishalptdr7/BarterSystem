@@ -27,35 +27,49 @@ import ChatPage from "./pages/Cont.jsx";
 import { useCallback } from "react";
 import MainHomePage from "./pages/MainHomePage.jsx";
 const App = () => {
-  const { selectedUser, setSelectedUser } = useChatStore();
+  const {
+    selectedUser,
+    setSelectedUser,
+    getUsers,
+    subscribeToMessages,
+    unsubscribeFromMessages,
+  } = useChatStore();
 
   const location = useLocation();
 
-  const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
-  console.log("app.jsx file",authUser)
+  const { authUser, checkAuth, isCheckingAuth, onlineUsers,socket } = useAuthStore();
+
   const { theme } = useThemeStore();
 
   const { userId } = useSwapStore();
 
-  // const checkAuthStatus = useCallback(() => {
-  //   checkAuth();
-  // }, [checkAuth]);
-  // useEffect(() => {
-  //   checkAuth();
-  // }, []);
+  useEffect(() => {
+    if (socket){
+      subscribeToMessages();
+    } // One-time global listener
+    return () => {
+      unsubscribeFromMessages();
+    };
+  }, [socket]);
   
-  // useEffect(() => {
-  //   checkAuthStatus();
-  //   setSelectedUser(null); // Reset selectedUser when navigating back to home page
-  // }, [checkAuthStatus, setSelectedUser]);
   useEffect(() => {
-    checkAuth();
+    // Check auth only once on initial render
+      checkAuth();
+    
+    
   }, []);
+  
 
-  // ✅ Reset selectedUser only when location changes (no infinite loop)
   useEffect(() => {
+    // Reset selectedUser when navigating to a new route
     setSelectedUser(null);
   }, [location.pathname]);
+
+ 
+
+  
+
+
 
   if (isCheckingAuth && !authUser)
     return (
@@ -69,7 +83,6 @@ const App = () => {
 
   const role = authUser?.role || "";
 
-  
   return (
     <div data-theme={theme} className="flex flex-col min-h-screen">
       <Navbar />
@@ -99,7 +112,7 @@ const App = () => {
             }
           />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<SignUpPage/>} />
+          <Route path="/register" element={<SignUpPage />} />
           <Route path="/verifyOtp" element={<VerifyOtpPage />} />
           <Route path="/editProfile" element={<EditProfilePage />} />
           <Route path="/forgotPassword" element={<ForgotPasswordPage />} />

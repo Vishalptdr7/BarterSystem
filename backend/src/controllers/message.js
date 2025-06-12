@@ -56,11 +56,15 @@ export const sendMessage = asyncHandler(async (req, res) => {
       sent_at: new Date(),
     };
 
-    // Emit real-time message event
+    // Emit real-time message event with corrected event name and structure
     const receiverSocketId = getReceiverSocketId(receiver_id);
     if (receiverSocketId) {
-      io.to(receiverSocketId).emit("newMessage", newMessage);
+      io.to(receiverSocketId).emit("receiveMessage", {
+        message: newMessage,
+        sender: sender_id,
+      });
     }
+    
 
     res.status(201).json(newMessage);
   } catch (error) {
@@ -68,6 +72,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 
 
 

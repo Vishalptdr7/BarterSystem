@@ -10,7 +10,6 @@ export const useChatStore = create((set, get) => ({
   isUsersLoading: false,
   isMessagesLoading: false,
 
-  // Fetch users for the sidebar (users who have chatted)
   getUsers: async () => {
     set({ isUsersLoading: true });
     try {
@@ -23,14 +22,12 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
-  // Fetch messages between logged-in user and selected user
   getMessages: async (userId) => {
     set({ isMessagesLoading: true });
     try {
       const res = await axiosInstance.get(`/message/${userId}`);
       console.log("New message response:", res.data);
-
-      set({ messages: res.data || [] }); // Ensure messages is always an array
+      set({ messages: res.data || [] });
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to fetch messages");
     } finally {
@@ -38,7 +35,6 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
-  // Send a new message (text/image)
   sendMessage: async ({ content, image }) => {
     const { selectedUser, messages } = get();
     if (!selectedUser) return;
@@ -48,8 +44,8 @@ export const useChatStore = create((set, get) => ({
       formData.append("content", content);
 
       if (image) {
-        const blob = await fetch(image).then((res) => res.blob()); // Convert Base64 to Blob
-        formData.append("image", blob, "image.jpg"); // Append the image file
+        const blob = await fetch(image).then((res) => res.blob());
+        formData.append("image", blob, "image.jpg");
       }
 
       const res = await axiosInstance.post(
@@ -67,7 +63,6 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
-  // Mark messages as read
   markMessagesAsRead: async (messageId) => {
     try {
       await axiosInstance.post("/message/mark-read", {
@@ -78,32 +73,40 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
-  // Subscribe to real-time new messages
   subscribeToMessages: () => {
-    const { selectedUser } = get();
-    if (!selectedUser) return;
-
     const socket = useAuthStore.getState().socket;
     if (!socket) return;
 
-    socket.on("newMessage", (newMessage) => {
+    socket.off("receiveMessage"); // Prevent duplicate listeners
+
+    socket.on("receiveMessage", (payload) => {
+      const { message, sender } = payload;
+      const selectedUser = get().selectedUser;
+      const authUserId = useAuthStore.getState().authUser?.user_id;
+
+      // ✅ Append only if the message is between the current user and selected user
       if (
-        newMessage.sender_user_id === selectedUser.user_id || // Adjusted for MySQL
-        newMessage.receiver_user_id === selectedUser.user_id
+        selectedUser &&
+        ((message.sender_user_id === selectedUser.user_id &&
+          message.receiver_user_id === authUserId) ||
+          (message.receiver_user_id === selectedUser.user_id &&
+            message.sender_user_id === authUserId))
       ) {
-        set({ messages: [...get().messages, newMessage] });
+        set((state) => ({
+          messages: [...state.messages, message],
+        }));
       }
     });
+    
 
-    console.log("Subscribed to new messages...");
+    console.log("✅ Subscribed to receiveMessage");
   },
 
-  // Unsubscribe from messages when switching users
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
     if (!socket) return;
-    socket.off("newMessage");
-    console.log("Unsubscribed from new messages...");
+    socket.off("receiveMessage"); // ✅ Correct event name
+    console.log("🛑 Unsubscribed from receiveMessage...");
   },
 
   setSelectedUser: (selectedUser) => set({ selectedUser }),

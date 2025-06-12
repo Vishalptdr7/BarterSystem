@@ -6,7 +6,7 @@ import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import db from "../db/db.js"; // MySQL Database Connection
 import { ApiError } from "../utils/ApiErrors.js";
-import {ApiResponse} from "../utils/ApiResponse.js"; // Assuming ApiResponse is created for better structure
+import { ApiResponse } from "../utils/ApiResponse.js"; // Assuming ApiResponse is created for better structure
 import { uploadfileOnCloudinary } from "../utils/cloudinary.js";
 
 dotenv.config();
@@ -96,7 +96,6 @@ const sendOTP = async (email, otp) => {
       </section>
     `,
   };
-  
 
   try {
     await transporter.sendMail(mailOptions);
@@ -108,8 +107,6 @@ const sendOTP = async (email, otp) => {
 
 const generateAccessTokenAndRefreshToken = async (userId) => {
   try {
-    console.log("Generating tokens for User ID:", userId);
-
     // Fetch user from MySQL
     const [users] = await db.execute("SELECT * FROM users WHERE user_id = ?", [
       userId,
@@ -135,9 +132,6 @@ const generateAccessTokenAndRefreshToken = async (userId) => {
       { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
     );
 
-    console.log("Generated Access Token:", accessToken);
-    console.log("Generated Refresh Token:", refreshToken);
-
     // Update refresh token in database
     await db.execute("UPDATE users SET refreshToken = ? WHERE user_id = ?", [
       refreshToken,
@@ -150,7 +144,6 @@ const generateAccessTokenAndRefreshToken = async (userId) => {
     throw error;
   }
 };
-
 
 // ✅ Register Function
 export const register = async (req, res) => {
@@ -198,10 +191,6 @@ export const register = async (req, res) => {
   }
 };
 
-
-
-
-
 // ✅ Resend Otp
 export const resendOtp = async (req, res) => {
   try {
@@ -232,7 +221,9 @@ export const resendOtp = async (req, res) => {
 
     await sendOTP(email, otp);
 
-    return res.status(200).json({ message: "OTP resent successfully" ,email:email, otp: otp });
+    return res
+      .status(200)
+      .json({ message: "OTP resent successfully", email: email, otp: otp });
   } catch (error) {
     console.error("Resend OTP error:", error);
     return res
@@ -240,11 +231,6 @@ export const resendOtp = async (req, res) => {
       .json({ message: "Server error", error: error.message });
   }
 };
-
-
-
-
-
 
 // ✅ Verify OTP Function
 export const verifyOTP = async (req, res) => {
@@ -299,10 +285,6 @@ export const verifyOTP = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-
-
-
 
 // ✅ Login Function
 
@@ -381,8 +363,6 @@ export const login = async (req, res) => {
       secure: true, // Ensure this is set to true if you're using HTTPS
     };
 
-    console.log(loggedUser);
-
     // Return the response with status 200, cookies, and formatted data
     return res
       .status(200)
@@ -410,9 +390,6 @@ export const login = async (req, res) => {
     });
   }
 };
-
-
-
 
 // ✅ Logout Function
 export const logout = asyncHandler(async (req, res) => {
@@ -457,8 +434,6 @@ export const logout = asyncHandler(async (req, res) => {
   }
 });
 
-
-
 export const currentUser = asyncHandler(async (req, res) => {
   if (!req.user) {
     return res.status(400).json({ message: "User not authenticated" });
@@ -468,10 +443,6 @@ export const currentUser = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, req.user, "User Find Successfully"));
 });
-
-
-
-
 
 // ✅ Forgot Password (Send OTP for Reset)
 export const forgotPassword = async (req, res) => {
@@ -512,13 +483,11 @@ export const resetPassword = async (req, res) => {
 
     const { otp: storedOTP, otp_expires } = user[0];
 
-    console.log((otp))
     if (new Date() > new Date(otp_expires)) {
       return res
         .status(400)
         .json({ message: "OTP expired. Request a new one." });
     }
-    console.log(typeof(storedOTP))
     if (storedOTP != parseInt(otp)) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
@@ -608,11 +577,9 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 });
 
-
 export const deleteUser = asyncHandler(async (req, res) => {
   try {
     const user_id = req.params.id;
-    console.log("Deleting user with ID:", user_id); // Debugging
 
     if (!user_id) {
       return res.status(400).json({ message: "User ID is required" });
@@ -633,8 +600,7 @@ export const deleteUser = asyncHandler(async (req, res) => {
   }
 });
 
-
-export  const editProfile = asyncHandler(async (req, res) => {
+export const editProfile = asyncHandler(async (req, res) => {
   try {
     const user_id = req.user?.user_id; // Ensure this is properly extracted
     if (!user_id) {
@@ -654,7 +620,6 @@ export  const editProfile = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Failed to upload avatar");
       }
     }
-
 
     // Check if any field is provided
     if (!name && !location && !bio && !avtar) {
@@ -683,7 +648,6 @@ export  const editProfile = asyncHandler(async (req, res) => {
       user_id ?? null, // Ensure user_id is never undefined
     ];
 
-
     // Execute the SQL query
     const [result] = await db.execute(query, values);
 
@@ -699,17 +663,9 @@ export  const editProfile = asyncHandler(async (req, res) => {
   }
 });
 
-
-
-
-
-
-
-
 // Get All Users with Skills
 export const getAllUsers = asyncHandler(async (req, res) => {
   const loggedInUserId = req.user.user_id; // Get the logged-in user's ID
-  console.log("get all users ", loggedInUserId);
 
   if (!loggedInUserId) {
     return res
@@ -722,13 +678,16 @@ export const getAllUsers = asyncHandler(async (req, res) => {
         u.user_id, u.name, u.email, u.location, u.bio, u.role, u.profile_pic, u.created_at,
         COALESCE(
           JSON_ARRAYAGG(
-              JSON_OBJECT(
-                  'user_skill_id', us.user_skill_id,
-                  'skill_id', s.skill_id,
-                  'skill_name', s.skill_name,
-                  'description', s.description,
-                  'proficiency_level', us.proficiency_level
-              )
+              CASE
+                WHEN us.user_skill_id IS NOT NULL THEN JSON_OBJECT(
+                    'user_skill_id', us.user_skill_id,
+                    'skill_id', s.skill_id,
+                    'skill_name', s.skill_name,
+                    'description', s.description,
+                    'proficiency_level', us.proficiency_level
+                )
+                ELSE NULL
+              END
           ),
           JSON_ARRAY()
         ) AS skills
@@ -743,10 +702,6 @@ export const getAllUsers = asyncHandler(async (req, res) => {
 
   return res.json(users);
 });
-
-
-
-
 
 export const getUserById = asyncHandler(async (req, res) => {
   try {

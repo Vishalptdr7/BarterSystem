@@ -1,43 +1,44 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 import { axiosInstance } from "../lib/axios.js";
-import { useAuthStore } from "../store/useAuthStore.js"; // Assuming authentication store
-import { FaBell } from "react-icons/fa"; // Import an icon for better UI
+import { useAuthStore } from "../store/useAuthStore.js";
+import { FaBell } from "react-icons/fa";
 
 const SendNotification = ({ userId: propUserId }) => {
-  const [userId, setUserId] = useState(propUserId || ""); // Initialize with propUserId
-  console.log({ userId });
+  const [userId, setUserId] = useState(propUserId || "");
   const [messageType, setMessageType] = useState("connect");
   const [status, setStatus] = useState("");
+  const { authUser } = useAuthStore();
+  const socketRef = useRef(null); // ✅ Ref to persist socket connection
 
-  // Get sender details (Assuming user data is stored in an authentication store)
-  const { authUser } = useAuthStore(); // user = { user_id: "123", name: "John Doe" }
-  console.log(authUser.user_id);
   useEffect(() => {
-    // Connect WebSocket inside useEffect to avoid multiple connections
-    const socket = io("http://localhost:8080", {
+    if (!authUser?.user_id) return;
+
+    // ✅ Connect once and reuse
+    socketRef.current = io("http://localhost:8080", {
       transports: ["websocket"],
       withCredentials: true,
+      auth: {
+        userId: authUser.user_id,
+      },
     });
 
-    socket.on("receiveNotification", ({ message }) => {
+    socketRef.current.on("receiveNotification", ({ message }) => {
       alert(`🔔 New Notification: ${message}`);
     });
 
     return () => {
-      socket.disconnect(); // Cleanup on unmount
+      socketRef.current?.disconnect();
     };
-  }, []);
+  }, [authUser?.user_id]);
 
-  // Generate message including sender's name
-  const getMessage = () => {
-    const senderName = authUser?.name || "Someone"; // Fallback if user is undefined
+  const getMessage = async () => {
+    const senderName = authUser?.name || "Someone";
     return messageType === "connect"
       ? `${senderName} wants to connect with you`
       : `${senderName} wants to swap with you`;
   };
 
-  // Send notification via API and WebSocket
   const handleSendNotification = async () => {
     if (!userId) {
       setStatus("⚠️ User ID is required!");
@@ -49,27 +50,25 @@ const SendNotification = ({ userId: propUserId }) => {
       return;
     }
 
-    const message = getMessage();
+    const message = await getMessage();
 
     try {
-      // Send notification via REST API
       await axiosInstance.post("/notification", {
         user_id: userId,
         message: message,
-        sender_id: authUser?.user_id, // Ensure sender_id is passed correctly
+        sender_id: authUser.user_id,
       });
 
       setStatus("✅ Notification Sent!");
 
-      // Emit WebSocket event
-      const socket = io("http://localhost:8080");
-      socket.emit("sendNotification", {
+      // ✅ Reuse existing socket connection
+      socketRef.current?.emit("sendNotification", {
         user_id: userId,
-        sender_id: authUser?.user_id,
+        sender_id: authUser.user_id,
         message: message,
       });
 
-      setUserId(propUserId || ""); // Reset userId to prop value
+      setUserId(propUserId || "");
     } catch (error) {
       setStatus("❌ Failed to send notification.");
       console.error("Error:", error);
@@ -92,7 +91,7 @@ const SendNotification = ({ userId: propUserId }) => {
           value={userId}
           onChange={(e) => setUserId(e.target.value)}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
-          disabled={!!propUserId} // Disable input if userId is passed via props
+          disabled={!!propUserId}
         />
       </div>
 

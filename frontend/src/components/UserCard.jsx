@@ -1,6 +1,7 @@
 import { Repeat, MessageCircle, User } from "lucide-react";
 
 const UserCard = ({ user, onSwap, onChat, onProfile }) => {
+  
   return (
     <div className="relative flex flex-col rounded-xl bg-white text-gray-700 shadow-md border border-blue-gray-100">
       <div className="flex items-center p-6 gap-4">
@@ -12,7 +13,9 @@ const UserCard = ({ user, onSwap, onChat, onProfile }) => {
           />
         ) : (
           <div className="w-16 h-16 rounded-full bg-blue-gray-300 flex items-center justify-center text-white text-xl font-bold">
-            {user.name?.charAt(0).toUpperCase() || "U"}
+            {typeof user.name === "string" && user.name.length > 0
+              ? user.name.charAt(0).toUpperCase()
+              : "U"}
           </div>
         )}
         <div>
@@ -27,7 +30,9 @@ const UserCard = ({ user, onSwap, onChat, onProfile }) => {
 
       <div className="px-6">
         <h3 className="font-semibold text-blue-gray-800 mb-1">Skills:</h3>
-        {user.skills?.length ? (
+        {Array.isArray(user.skills) &&
+        user.skills[0] !== null &&
+        user.skills.length > 0 ? (
           <ul className="list-disc list-inside text-sm text-blue-gray-600">
             {user.skills.map((skill, idx) => (
               <li key={`${skill.skill_id}-${idx}`}>

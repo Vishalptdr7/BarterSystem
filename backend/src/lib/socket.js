@@ -27,13 +27,9 @@ io.on("connection", (socket) => {
     return;
   }
 
-  console.log("✅ User connected:", socket.id, "with userId:", userId);
-
   userSocketMap.set(userId, socket.id);
-  console.log("🔵 Online Users:", [...userSocketMap.keys()]);
 
   io.emit("getOnlineUsers", [...userSocketMap.keys()]);
-
   socket.on("createGroup", ({ groupId, members }) => {
     members.forEach((member) => {
       const memberSocketId = getReceiverSocketId(member);
@@ -45,17 +41,37 @@ io.on("connection", (socket) => {
     io.to(groupId).emit("groupCreated", { groupId, members });
   });
 
-  socket.on("sendMessage", ({ groupId, message, sender }) => {
-    console.log(`📩 Message from ${sender} to Group ${groupId}:`, message);
-    io.to(groupId).emit("receiveMessage", { message, sender });
+  socket.on("sendMessage", ({ groupId, message, sender, receiver }) => {
+    if (groupId) {
+      // GROUP MESSAGE
+      console.log(
+        `📩 Group message from ${sender} to Group ${groupId}:`,
+        message
+      );
+      io.to(groupId).emit("receiveMessage", { message, sender });
+    } else {
+      // DIRECT MESSAGE
+      const receiverSocketId = getReceiverSocketId(receiver);
+      const senderSocketId = getReceiverSocketId(sender);
+
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("receiveMessage", { message, sender });
+      }
+      if (senderSocketId) {
+        io.to(senderSocketId).emit("receiveMessage", { message, sender });
+      }
+
+      console.log(`📩 Direct message from ${sender} to ${receiver}:`, message);
+    }
+  });
+  
+  socket.on("sendNotification", (data) => {
+    io.emit("receiveNotification", data);
   });
 
   socket.on("disconnect", () => {
-    console.log("❌ A user disconnected:", socket.id);
-
     if (userSocketMap.has(userId)) {
       userSocketMap.delete(userId);
-      console.log("🔴 Updated Online Users:", [...userSocketMap.keys()]);
       io.emit("getOnlineUsers", [...userSocketMap.keys()]);
     }
   });

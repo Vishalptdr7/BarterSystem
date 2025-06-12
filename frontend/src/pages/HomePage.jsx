@@ -20,15 +20,13 @@ const UsersPage = () => {
   const { selectedUser, setSelectedUser } = useChatStore();
   const [isChatOpen, setIsChatOpen] = useState(false);
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
 
   useEffect(() => {
     if (selectedUser) setIsChatOpen(true);
   }, [selectedUser]);
 
   const fetchUsers = async () => {
+    setLoading(true);
     try {
       const { data } = await axiosInstance.get("/users/getAllUsers");
       setUsers(data); // Backend already excludes the logged-in user
@@ -44,11 +42,15 @@ const UsersPage = () => {
     }
   };
 
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
   const handleSwapRequest = (userId) => {
     if (!userId) return;
     setUserId(userId);
-    toast.success(`Swap request sent to user ${userId}`);
     navigate(`/notification`);
+    toast.success(`Swap request sent to user ${userId}`);
   };
 
   const handleChat = (user) => {

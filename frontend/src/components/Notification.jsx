@@ -1,19 +1,41 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { axiosInstance } from "../lib/axios.js";
 import { toast } from "react-hot-toast";
 import { Bell, CheckCircle, Trash2 } from "lucide-react";
+import { io } from "socket.io-client"; // ✅ Import socket.io
 
 const Notification = ({ userId }) => {
-  
   const [notifications, setNotifications] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
+  const socketRef = useRef(null); // ✅ Store socket reference
 
-  // useEffect(() => {
-  //   fetchNotifications();
-  // }, []);
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
 
-  // Fetch user notifications
+  // ✅ Setup socket connection only once
+  useEffect(() => {
+    if (!userId) return;
+
+    socketRef.current = io("http://localhost:8080", {
+      transports: ["websocket"],
+      withCredentials: true,
+      auth: {
+        userId,
+      },
+    });
+
+    socketRef.current.on("receiveNotification", (data) => {
+      setNotifications((prev) => [data, ...prev]); // ✅ Prepend new notification
+      toast.success("🔔 New notification received");
+    });
+
+    return () => {
+      socketRef.current.disconnect(); // ✅ Cleanup on unmount
+    };
+  }, [userId]);
+
   const fetchNotifications = async () => {
     try {
       setLoading(true);
@@ -26,7 +48,6 @@ const Notification = ({ userId }) => {
     }
   };
 
-  // Mark notification as read
   const markAsRead = async (notificationId) => {
     try {
       await axiosInstance.put(`/notification/${notificationId}`);
@@ -41,7 +62,6 @@ const Notification = ({ userId }) => {
     }
   };
 
-  // Delete notification
   const deleteNotification = async (notificationId) => {
     try {
       await axiosInstance.delete(`/notification/${notificationId}`);

@@ -18,10 +18,10 @@ export const useAuthStore = create((set, get) => ({
   checkAuth: async () => {
     try {
       const res = await axiosInstance.get("/users/current");
-      console.log("checkauth", res.data.message);
       if (res.data.statusCode === 200) {
         set({ authUser: res.data.message, userId: res.data.message.user_id });
         get().connectSocket();
+        console.log("Auth user set:", res.data.message);
       } else {
         set({ authUser: null });
       }
@@ -36,11 +36,11 @@ export const useAuthStore = create((set, get) => ({
     set({ isSigningUp: true });
     try {
       const res = await axiosInstance.post("/users/register", formData);
-  
+
       if (!res.data.success) {
         throw new Error(res.data.message || "Signup failed");
       }
-  
+
       toast.success("Registered successfully. Check your email for OTP.");
     } catch (error) {
       toast.error(error.response?.data?.message || "Signup failed");
@@ -48,27 +48,25 @@ export const useAuthStore = create((set, get) => ({
     } finally {
       set({ isSigningUp: false });
     }
-  }
-,  
+  },
+  verifyOtp: async ({ email, otp }) => {
+    set({ isVerifying: true });
+    try {
+      const res = await axiosInstance.post("/users/verifyOtp", { email, otp });
+      toast.success(res.data.message);
 
-verifyOtp: async ({ email, otp }) => {
-  set({ isVerifying: true });
-  try {
-    const res = await axiosInstance.post("/users/verifyOtp", { email, otp });
-    toast.success(res.data.message);
+      // Save verified user to authUser (optional)
+      set({ authUser: res.data.user });
 
-    // Save verified user to authUser (optional)
-    set({ authUser: res.data.user });
-
-    console.log("User logged in successfully", get().authUser); // ✅ FIXED
-  } catch (error) {
-    toast.error(error.response?.data?.message || "OTP verification failed");
-    console.error("Error during OTP verification:", error);
-    throw error;
-  } finally {
-    set({ isVerifying: false });
-  }
-},
+      // ✅ FIXED
+    } catch (error) {
+      toast.error(error.response?.data?.message || "OTP verification failed");
+      console.error("Error during OTP verification:", error);
+      throw error;
+    } finally {
+      set({ isVerifying: false });
+    }
+  },
 
   login: async (formData) => {
     set({ isLoggingIn: true });
@@ -76,11 +74,11 @@ verifyOtp: async ({ email, otp }) => {
       const res = await axiosInstance.post("/users/login", formData);
 
       // ✅ Properly store user object (not just message string)
-      set({ authUser: res.data.data.user ,userId: res.data.data.user.user_id });
+      set({ authUser: res.data.data.user, userId: res.data.data.user.user_id });
 
       toast.success("Logged in successfully");
       get().connectSocket();
-      console.log("login", res.data.data.user);
+      window.location.reload();
     } catch (error) {
       toast.error(error.response?.data?.errors?.[0] || "Login failed");
       console.log("login error", error.message);
@@ -92,7 +90,7 @@ verifyOtp: async ({ email, otp }) => {
   logout: async () => {
     try {
       await axiosInstance.post("/users/logout");
-      set({ authUser: null ,userId:null});
+      set({ authUser: null, userId: null });
       toast.success("Logged out successfully");
       get().disconnectSocket();
     } catch (error) {

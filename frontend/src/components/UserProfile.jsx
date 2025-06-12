@@ -3,16 +3,17 @@ import { useParams, useNavigate } from "react-router-dom";
 import { axiosInstance } from "../lib/axios";
 import { toast } from "react-hot-toast";
 import { ArrowLeft, MessageCircle, RefreshCw } from "lucide-react";
-
-const UserProfile = () => {
+import { useChatStore } from "../store/useChatStore";
+const UserProfile = ({onChat}) => {
   const { userId } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const { selectedUser, setSelectedUser } = useChatStore();
+  
   useEffect(() => {
     fetchUserProfile();
-  }, [userId]);
+  }, []);
 
   const fetchUserProfile = async () => {
     try {
@@ -26,9 +27,12 @@ const UserProfile = () => {
     }
   };
 
-  const handleChat = () => {
-    toast.success(`Starting chat with ${user?.name}`);
-    // Navigate to chat page when integrated
+  
+  
+
+  const handleChat = (user) => {
+    if (!user) return;
+    setSelectedUser(user);
   };
 
   const handleSwapSkill = () => {
@@ -112,7 +116,7 @@ const UserProfile = () => {
             </button>
 
             <button
-              onClick={() => navigate("/user/home")}
+              onClick={() => navigate("/users")}
               className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
             >
               <ArrowLeft className="w-5 h-5 mr-2" /> Back
