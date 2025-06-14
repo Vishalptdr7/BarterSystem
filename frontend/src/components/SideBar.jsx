@@ -3,12 +3,14 @@ import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import { Home, Users, MessageSquare } from "lucide-react";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton";
-import { Link } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom"; // ✅ Correct import
+
 const Sidebar = () => {
   const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading } =
     useChatStore();
-  const { onlineUsers,authUser } = useAuthStore();
+  const { onlineUsers, authUser } = useAuthStore();
 
+  const navigate = useNavigate(); // ✅ Correct hook
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
 
   useEffect(() => {
@@ -29,15 +31,13 @@ const Sidebar = () => {
     <aside className="flex h-screen ">
       {/* Compact vertical nav */}
       <div className="flex flex-col items-center w-16 h-full py-24  space-y-6 bg-white dark:bg-gray-900 dark:border-gray-700 border-r">
-        <Link>
-          
-            <img
-              className="w-auto h-6"
-              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ077k7uCCqVLzAQ7doJ8hMPg8Fxs6R7H_rJg&s"
-              alt=""
-            />
-          
-        </Link>
+        {/* ✅ Fixed logo click */}
+        <img
+          onClick={() => navigate("/")}
+          className="w-auto h-6 cursor-pointer"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ077k7uCCqVLzAQ7doJ8hMPg8Fxs6R7H_rJg&s"
+          alt="Logo"
+        />
 
         {[Home, Users, MessageSquare].map((Icon, index) => (
           <a

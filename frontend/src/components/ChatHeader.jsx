@@ -7,43 +7,56 @@ const ChatHeader = () => {
   const { onlineUsers } = useAuthStore();
 
   return (
-    <div className="p-2.5 border-b border-base-300">
+    <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          {/* Avatar */}
-          <div className="avatar">
-            <div className="size-10 rounded-full relative">
-              {selectedUser.profilePic ? (
-                <img
-                  src={selectedUser.profilePic}
-                  alt={selectedUser.name}
-                  className="size-12 object-cover rounded-full"
-                />
-              ) : (
-                <div className="size-12 rounded-full bg-pink-500 flex items-center justify-center text-white font-bold text-lg">
-                  {selectedUser.name.charAt(0).toUpperCase()}
-                </div>
-              )}
-            </div>
+        {/* Avatar & Info */}
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            {selectedUser?.profilePic ? (
+              <img
+                src={selectedUser.profilePic}
+                alt={selectedUser.name}
+                className="w-12 h-12 rounded-full object-cover border border-gray-300 shadow-sm"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                {selectedUser?.name?.charAt(0).toUpperCase() || "U"}
+              </div>
+            )}
+
+            {/* Online Indicator */}
+            <span
+              className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-gray-900 ${
+                onlineUsers.includes(selectedUser?.user_id)
+                  ? "bg-green-500"
+                  : "bg-gray-400"
+              }`}
+            />
           </div>
 
-          {/* User info */}
+          {/* Name & Status */}
           <div>
-            <h3 className="font-medium">{selectedUser.name}</h3>
-            <p className="text-sm text-base-content/70">
-              {onlineUsers.includes(selectedUser.user_id)
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+              {selectedUser?.name || "Unknown User"}
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {onlineUsers.includes(selectedUser?.user_id)
                 ? "Online"
                 : "Offline"}
             </p>
           </div>
         </div>
 
-        {/* Close button */}
-        <button onClick={() => setSelectedUser(null)}>
-          <X />
+        {/* Close Button */}
+        <button
+          onClick={() => setSelectedUser(null)}
+          className="text-gray-500 hover:text-red-500 transition p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+        >
+          <X className="w-5 h-5" />
         </button>
       </div>
     </div>
   );
 };
+
 export default ChatHeader;

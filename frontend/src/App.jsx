@@ -26,6 +26,7 @@ import { useChatStore } from "./store/useChatStore.js";
 import ChatPage from "./pages/Cont.jsx";
 import { useCallback } from "react";
 import MainHomePage from "./pages/MainHomePage.jsx";
+import OnlineStatusWrapper from "./components/OnlineStatusWrapper.jsx";
 const App = () => {
   const {
     selectedUser,
@@ -84,66 +85,71 @@ const App = () => {
   const role = authUser?.role || "";
 
   return (
-    <div data-theme={theme} className="flex flex-col min-h-screen">
-      <Navbar />
-      <div className="flex-grow">
-        <Routes>
-          <Route path="/" element={<MainHomePage />} />
+    <OnlineStatusWrapper>
+        <div data-theme={theme} className="flex flex-col min-h-screen">
+         <Navbar />
+         <div className="flex-grow">
+          <Routes>
+            <Route path="/" element={<MainHomePage />} />
 
-          <Route
-            path="/admin"
-            element={
-              authUser && role === "admin" ? (
-                <AdminHomePage />
-              ) : (
-                <Navigate to={authUser ? "/users" : "/"} />
-              )
-            }
-          />
+            <Route
+              path="/admin"
+              element={
+                authUser && role === "admin" ? (
+                  <AdminHomePage />
+                ) : (
+                  <Navigate to={authUser ? "/users" : "/"} />
+                )
+              }
+            />
 
-          <Route
-            path="/users"
-            element={
-              authUser && role === "user" ? (
-                <UsersPage />
-              ) : (
-                <Navigate to={authUser ? "/admin" : "/"} />
-              )
-            }
-          />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<SignUpPage />} />
-          <Route path="/verifyOtp" element={<VerifyOtpPage />} />
-          <Route path="/editProfile" element={<EditProfilePage />} />
-          <Route path="/forgotPassword" element={<ForgotPasswordPage />} />
-          <Route path="/resetPassword" element={<ResetPasswordPage />} />
-          <Route path="/aboutus" element={<AboutUs />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/contact" element={<ContactUs />} />
-          <Route
-            path="/profile/:userId"
-            element={authUser ? <UserProfile /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/user_skill/:userId"
-            element={
-              authUser ? <UserSkillsManager /> : <Navigate to="/login" />
-            }
-          />
-          <Route path="/settings" element={<SettingPage />} />
-          <Route
-            path="/notification"
-            element={<SendNotification userId={userId} />}
-          />
-          <Route
-            path="/chat"
-            element={authUser ? <ChatPage /> : <Navigate to="/login" />}
-          />
-        </Routes>
+            <Route
+              path="/users"
+              element={
+                authUser && role === "user" ? (
+                  <UsersPage />
+                ) : (
+                  <Navigate to={authUser ? "/admin" : "/"} />
+                )
+              }
+            />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<SignUpPage />} />
+            <Route path="/verifyOtp" element={<VerifyOtpPage />} />
+            <Route
+              path="/editProfile"
+              element={authUser ? <EditProfilePage /> : <Navigate to="/" />}
+            />
+            <Route path="/forgotPassword" element={<ForgotPasswordPage />} />
+            <Route path="/resetPassword" element={<ResetPasswordPage />} />
+            <Route path="/aboutus" element={<AboutUs />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/contact" element={<ContactUs />} />
+            <Route
+              path="/profile/:userId"
+              element={authUser ? <UserProfile /> : <Navigate to="/" />}
+            />
+            <Route
+              path="/user_skill/:userId"
+              element={
+                authUser ? <UserSkillsManager /> : <Navigate to="/login" />
+              }
+            />
+            <Route path="/settings" element={<SettingPage />} />
+            <Route
+              path="/notification"
+              element={<SendNotification userId={userId} />}
+            />
+            <Route
+              path="/chat"
+              element={authUser ? <ChatPage /> : <Navigate to="/login" />}
+            />
+          </Routes>
+        </div>
+        {location.pathname !== "/chat" && <Footer />}
+        <Toaster />
       </div>
-      {location.pathname !== "/chat" && <Footer />}
-      <Toaster />
-    </div>
+    </OnlineStatusWrapper>
   );
 };
 

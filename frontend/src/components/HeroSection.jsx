@@ -1,7 +1,8 @@
 import React from "react";
 import { Button } from "@material-tailwind/react";
-
+import { useNavigate } from "react-router-dom";
 const HeroSection = () => {
+  const navigate = useNavigate();
   return (
     <section className="mt-12 sm:mt-6 lg:mt-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="my-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28 flex flex-col lg:flex-row gap-6 items-center lg:items-start">
@@ -24,6 +25,7 @@ const HeroSection = () => {
           {/* Buttons */}
           <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row sm:justify-center lg:justify-start gap-3">
             <Button
+              onClick={() => navigate("/users")}
               color="gray"
               className="text-white bg-gray-800 hover:bg-gray-700 px-8 py-3 md:px-10 md:py-4 text-base md:text-lg"
             >

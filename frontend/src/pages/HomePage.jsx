@@ -20,7 +20,6 @@ const UsersPage = () => {
   const { selectedUser, setSelectedUser } = useChatStore();
   const [isChatOpen, setIsChatOpen] = useState(false);
 
-
   useEffect(() => {
     if (selectedUser) setIsChatOpen(true);
   }, [selectedUser]);
@@ -29,7 +28,7 @@ const UsersPage = () => {
     setLoading(true);
     try {
       const { data } = await axiosInstance.get("/users/getAllUsers");
-      setUsers(data); // Backend already excludes the logged-in user
+      setUsers(data);
     } catch (error) {
       if (error.response?.status === 401) {
         toast.error("Unauthorized. Please login again.");
