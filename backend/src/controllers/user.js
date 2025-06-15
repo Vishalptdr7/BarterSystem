@@ -351,11 +351,13 @@ export const login = async (req, res) => {
     );
 
     // Prepare the response object
-    const loggedUser = {
-      user_id,
-      name,
-      email: user[0].email,
-    };
+    const {
+      password: _,
+      refreshToken: __,
+      accessToken: ___,
+      ...userDetails
+    } = user[0];
+
 
     // Cookie options for tokens
     const options = {
@@ -372,7 +374,7 @@ export const login = async (req, res) => {
         statusCode: 200,
         success: true,
         data: {
-          user: loggedUser,
+          user: userDetails,
           role: role,
           refreshToken,
           accessToken,

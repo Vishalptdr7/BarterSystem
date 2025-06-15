@@ -13,9 +13,10 @@ import dbconnect from "./db/index.js";
 // Middleware Setup
 app.use(
   cors({
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST", "DELETE", "PUT", "POST"],
+    origin: "http://localhost:5173", // ✅ Frontend origin
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
+    
   })
 );
 

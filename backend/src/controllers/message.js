@@ -10,7 +10,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
     let { content } = req.body;
     const { receiver_id } = req.params;
     const sender_id = req.user?.user_id;
-    console.log(content);
+    
     if (!sender_id || !receiver_id) {
       return res.status(400).json({ error: "Missing required fields" });
     }
@@ -22,7 +22,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
 
     // Handle multiple image uploads
     let imageUrls = [];
-    console.log(req.files?.image);
+    
     if (req.files?.image) {
       try {
         const uploadPromises = req.files.image.map(async (file) => {
@@ -55,7 +55,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
       images: imageUrls,
       sent_at: new Date(),
     };
-
+    
     // Emit real-time message event with corrected event name and structure
     const receiverSocketId = getReceiverSocketId(receiver_id);
     if (receiverSocketId) {

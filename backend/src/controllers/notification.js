@@ -1,7 +1,8 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
-import db from "../db/db.js"
 import { io } from "../lib/socket.js";
 import { getReceiverSocketId } from "../lib/socket.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import db from "../db/db.js";
+
 export const sendNotification = asyncHandler(async (req, res) => {
   try {
     const { user_id, sender_id, message } = req.body;
@@ -20,27 +21,26 @@ export const sendNotification = asyncHandler(async (req, res) => {
 
     const notification_id = result.insertId;
 
+    // ✅ Fetch full notification from DB (includes created_at, etc.)
+    const [rows] = await db.execute(
+      "SELECT * FROM notification WHERE notification_id = ?",
+      [notification_id]
+    );
+    const fullNotification = rows[0];
     // Check if the receiver is online
     const receiverSocketId = getReceiverSocketId(user_id);
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("receiveNotification", {
-        notification_id,
-        user_id,
-        sender_id,
-        message,
-        is_read: false,
-        created_at: new Date(),
-      });
+    if (receiverSocketId && fullNotification) {
+      io.to(receiverSocketId).emit("receiveNotification", fullNotification);
     }
 
-    res.status(201).json({ message: "Notification sent", notification_id });
+    res
+      .status(201)
+      .json({ message: "Notification sent", notification: fullNotification });
   } catch (error) {
     console.error("Error sending notification:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
-
-
 
 export const getUserNotifications = asyncHandler(async (req, res) => {
   try {
@@ -56,7 +56,6 @@ export const getUserNotifications = asyncHandler(async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
-
 
 export const markNotificationAsRead = asyncHandler(async (req, res) => {
   try {
@@ -76,9 +75,6 @@ export const markNotificationAsRead = asyncHandler(async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
-
-
-
 
 export const deleteNotification = asyncHandler(async (req, res) => {
   try {
