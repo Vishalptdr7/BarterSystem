@@ -11,7 +11,7 @@ const VerifyOtpPage = () => {
   const location = useLocation();
   const email = location.state?.email || "";
   const password = location.state?.password;
-
+  
   const [formData, setFormData] = useState({
     email: email,
     password: password,
@@ -45,10 +45,13 @@ const VerifyOtpPage = () => {
       toast.success("Email verified successfully");
 
       // Then immediately log in
+      
       await login(formData);
 
-      // Navigate on success
       navigate("/");
+
+      // Navigate on success
+       // 500ms delay
     } catch (error) {
       console.error("Error in OTP verification:", error);
       toast.error("OTP verification failed");
@@ -65,7 +68,7 @@ const VerifyOtpPage = () => {
     }
     setIsResending(true);
     try {
-       resendOtp({ email });
+      await resendOtp({ email });
       toast.success("OTP resent successfully.");
     } catch (error) {
       console.error("Error in resending OTP:");

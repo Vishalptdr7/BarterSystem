@@ -26,7 +26,6 @@ import { useChatStore } from "./store/useChatStore.js";
 import ChatPage from "./pages/Cont.jsx";
 import { useCallback } from "react";
 import MainHomePage from "./pages/MainHomePage.jsx";
-import OnlineStatusWrapper from "./components/OnlineStatusWrapper.jsx";
 const App = () => {
   const {
     selectedUser,
@@ -44,6 +43,7 @@ const App = () => {
 
   const { userId } = useSwapStore();
 
+
   useEffect(() => {
     if (socket){
       subscribeToMessages();
@@ -58,7 +58,7 @@ const App = () => {
       checkAuth();
     
     
-  }, []);
+  }, [checkAuth]);
   
 
   useEffect(() => {
@@ -85,7 +85,6 @@ const App = () => {
   const role = authUser?.role || "";
 
   return (
-    <OnlineStatusWrapper>
         <div data-theme={theme} className="flex flex-col min-h-screen">
          <Navbar />
          <div className="flex-grow">
@@ -149,7 +148,6 @@ const App = () => {
         {location.pathname !== "/chat" && <Footer />}
         <Toaster />
       </div>
-    </OnlineStatusWrapper>
   );
 };
 

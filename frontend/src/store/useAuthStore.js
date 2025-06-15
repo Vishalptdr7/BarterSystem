@@ -55,10 +55,8 @@ export const useAuthStore = create((set, get) => ({
       const res = await axiosInstance.post("/users/verifyOtp", { email, otp });
       toast.success(res.data.message);
 
-      // Save verified user to authUser (optional)
-      set({ authUser: res.data.user });
-
-      // ✅ FIXED
+      // ✅ FIXED: also set userId
+      set({ authUser: res.data.user, userId: res.data.user.user_id });
     } catch (error) {
       toast.error(error.response?.data?.message || "OTP verification failed");
       console.error("Error during OTP verification:", error);
@@ -78,7 +76,8 @@ export const useAuthStore = create((set, get) => ({
 
       toast.success("Logged in successfully");
       get().connectSocket();
-      window.location.reload();
+      console.log("login",res.data.data.user);
+      // window.location.reload();
     } catch (error) {
       toast.error(error.response?.data?.errors?.[0] || "Login failed");
       console.log("login error", error.message);

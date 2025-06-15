@@ -3,6 +3,7 @@ import { axiosInstance } from "../lib/axios.js";
 import { toast } from "react-hot-toast";
 import { Bell, CheckCircle, Trash2 } from "lucide-react";
 import { io } from "socket.io-client"; // ✅ Import socket.io
+import { data } from "react-router-dom";
 
 const Notification = ({ userId }) => {
   const [notifications, setNotifications] = useState([]);
@@ -12,7 +13,7 @@ const Notification = ({ userId }) => {
 
   useEffect(() => {
     fetchNotifications();
-  }, []);
+  }, [userId]);
 
   // ✅ Setup socket connection only once
   useEffect(() => {
@@ -27,10 +28,12 @@ const Notification = ({ userId }) => {
     });
 
     socketRef.current.on("receiveNotification", (data) => {
-      setNotifications((prev) => [data, ...prev]); // ✅ Prepend new notification
+      setNotifications((prev) => [data, ...prev]);
+      fetchNotifications();
       toast.success("🔔 New notification received");
     });
-
+    
+    
     return () => {
       socketRef.current.disconnect(); // ✅ Cleanup on unmount
     };
@@ -99,7 +102,7 @@ const Notification = ({ userId }) => {
             ) : notifications.length > 0 ? (
               notifications.map((n) => (
                 <div
-                  key={n.notification_id}
+                  key={n.notification_id || `${n.message}-${Math.random()}`}
                   className={`p-2 flex justify-between items-center ${
                     n.is_read ? "text-gray-500" : "text-black font-semibold"
                   }`}
