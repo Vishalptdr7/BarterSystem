@@ -26,6 +26,7 @@ import { useChatStore } from "./store/useChatStore.js";
 import ChatPage from "./pages/Cont.jsx";
 import { useCallback } from "react";
 import MainHomePage from "./pages/MainHomePage.jsx";
+import OnlineStatusWrapper from "./components/OnlineStatusWrapper.jsx";
 const App = () => {
   const {
     selectedUser,
@@ -47,22 +48,20 @@ const App = () => {
   useEffect(() => {
     if (socket){
       subscribeToMessages();
-    } // One-time global listener
+    }
     return () => {
       unsubscribeFromMessages();
     };
   }, [socket]);
   
   useEffect(() => {
-    // Check auth only once on initial render
       checkAuth();
     
     
-  }, [checkAuth]);
+  }, []);
   
 
   useEffect(() => {
-    // Reset selectedUser when navigating to a new route
     setSelectedUser(null);
   }, [location.pathname]);
 
@@ -85,9 +84,10 @@ const App = () => {
   const role = authUser?.role || "";
 
   return (
-        <div data-theme={theme} className="flex flex-col min-h-screen">
-         <Navbar />
-         <div className="flex-grow">
+    <OnlineStatusWrapper>
+      <div data-theme={theme} className="flex flex-col min-h-screen">
+        <Navbar />
+        <div className="flex-grow">
           <Routes>
             <Route path="/" element={<MainHomePage />} />
 
@@ -148,6 +148,7 @@ const App = () => {
         {location.pathname !== "/chat" && <Footer />}
         <Toaster />
       </div>
+    </OnlineStatusWrapper>
   );
 };
 

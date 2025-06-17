@@ -19,18 +19,24 @@ const ChatContainer = () => {
   const messageEndRef = useRef(null);
 
   useEffect(() => {
-    if (selectedUser) {
-      getMessages(selectedUser.user_id);
-      subscribeToMessages();
-    }
-    return () => unsubscribeFromMessages();
-  }, [selectedUser, getMessages, subscribeToMessages, unsubscribeFromMessages]);
+    const { socket } = useAuthStore.getState();
 
-  useEffect(() => {
-    if (messageEndRef.current) {
-      messageEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages]);
+    if (!selectedUser || !socket?.connected) return;
+
+    subscribeToMessages();
+    getMessages(selectedUser.user_id);
+
+    const scroll = () => {
+      messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    const timer = setTimeout(scroll, 100);
+
+    return () => {
+      unsubscribeFromMessages();
+      clearTimeout(timer);
+    };
+  }, [selectedUser?.user_id]);
 
   const getUserProfilePic = useMemo(
     () => (userId) =>

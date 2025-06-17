@@ -16,7 +16,6 @@ const SwapRequestForm = ({ receiverId, receiverSkills }) => {
   const handleSwapRequest = async (e) => {
     e.preventDefault();
     if (!senderSkill || !receiverSkill) {
-      toast.error("Please select both skills");
       return;
     }
     try {
@@ -28,11 +27,9 @@ const SwapRequestForm = ({ receiverId, receiverSkills }) => {
         receiver_skill_id: receiverSkill,
         status: "Pending",
       });
-      toast.success(data.message);
       setSenderSkill("");
       setReceiverSkill("");
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to initiate swap");
     } finally {
       setLoading(false);
     }

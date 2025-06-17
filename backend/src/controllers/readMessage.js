@@ -5,7 +5,6 @@ export const markMessageAsRead = asyncHandler(async (req, res) => {
   try {
     const { message_id, user_id } = req.params;
 
-    // Check if the message exists
     const [message] = await db.execute(
       "SELECT * FROM message WHERE message_id = ?",
       [message_id]
@@ -14,7 +13,6 @@ export const markMessageAsRead = asyncHandler(async (req, res) => {
       return res.status(404).json({ message: "Message not found" });
     }
 
-    // Check if the user exists
     const [user] = await db.execute("SELECT * FROM users WHERE user_id = ?", [
       user_id,
     ]);
@@ -22,20 +20,17 @@ export const markMessageAsRead = asyncHandler(async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Check if the read receipt already exists
     const [existingReceipt] = await db.execute(
       "SELECT * FROM message_read_receipts WHERE message_id = ? AND user_id = ?",
       [message_id, user_id]
     );
 
     if (existingReceipt.length > 0) {
-      // Update read status if already exists
       await db.execute(
         "UPDATE message_read_receipts SET is_read = TRUE, read_at = NOW() WHERE message_id = ? AND user_id = ?",
         [message_id, user_id]
       );
     } else {
-      // Insert a new read receipt if not exists
       await db.execute(
         "INSERT INTO message_read_receipts (message_id, user_id, is_read, read_at) VALUES (?, ?, TRUE, NOW())",
         [message_id, user_id]
@@ -56,7 +51,6 @@ export const getReadStatus = asyncHandler(async (req, res) => {
   try {
     const { message_id } = req.params;
 
-    // Check if the message exists
     const [message] = await db.execute(
       "SELECT * FROM message WHERE message_id = ?",
       [message_id]
@@ -65,7 +59,6 @@ export const getReadStatus = asyncHandler(async (req, res) => {
       return res.status(404).json({ message: "Message not found" });
     }
 
-    // Get all users who have read the message
     const [readReceipts] = await db.execute(
       "SELECT users.user_id, users.name, message_read_receipts.read_at FROM message_read_receipts " +
         "JOIN users ON message_read_receipts.user_id = users.user_id " +

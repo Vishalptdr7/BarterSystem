@@ -16,7 +16,6 @@ const MessageInput = () => {
 
 
    if (!file.type.startsWith("image/")) {
-     toast.error("Please select an image file");
      return;
    }
 
@@ -39,11 +38,10 @@ const MessageInput = () => {
 
     try {
       await sendMessage({
-        content: text.trim(), // Using 'content' instead of 'text' to match your MySQL schema
+        content: text.trim(), 
         image: imagePreview,
       });
 
-      // Clear input fields after sending message
       setText("");
       setImagePreview(null);
       if (fileInputRef.current) fileInputRef.current.value = "";

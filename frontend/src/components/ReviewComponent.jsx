@@ -15,7 +15,6 @@ const ReviewComponent = ({ reviewerId, revieweeId, swapId }) => {
       const { data } = await axiosInstance.get(`/review/user/${revieweeId}`);
       setReviews(data);
     } catch (error) {
-      toast.error("Failed to fetch reviews");
     }
   };
 
@@ -35,22 +34,18 @@ const ReviewComponent = ({ reviewerId, revieweeId, swapId }) => {
       };
       await axiosInstance
       .post("/review", payload);
-      toast.success("Review submitted successfully");
       fetchReviews();
       setRating(0);
       setComments("");
     } catch (error) {
-      toast.error(error.response.data.message || "Failed to submit review");
     }
   };
 
   const deleteReview = async (reviewId) => {
     try {
       await axiosInstance.delete(`/review/${reviewId}`);
-      toast.success("Review deleted successfully");
       fetchReviews();
     } catch (error) {
-      toast.error("Failed to delete review");
     }
   };
 

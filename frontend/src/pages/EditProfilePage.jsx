@@ -72,11 +72,9 @@ const EditProfilePage = () => {
         profile_pic: response.data.profile_pic,
       });
 
-      toast.success("Profile updated successfully!");
       navigate("/user/home"); // Redirect user to profile page
     } catch (error) {
       console.error("Profile update failed:", error);
-      toast.error(error?.response?.data?.message || "Failed to update profile");
     } finally {
       setLoading(false);
     }

@@ -6,14 +6,12 @@ import db from "../db/db.js";
 export const sendNotification = asyncHandler(async (req, res) => {
   try {
     const { user_id, sender_id, message } = req.body;
-
     if (!user_id || !sender_id || !message) {
       return res.status(400).json({
         message: "User ID, sender ID, and message are required",
       });
     }
 
-    // Store notification in the database
     const [result] = await db.execute(
       "INSERT INTO notification (user_id, sender_id, message) VALUES (?, ?, ?)",
       [user_id, sender_id, message]
@@ -21,13 +19,11 @@ export const sendNotification = asyncHandler(async (req, res) => {
 
     const notification_id = result.insertId;
 
-    // ✅ Fetch full notification from DB (includes created_at, etc.)
     const [rows] = await db.execute(
       "SELECT * FROM notification WHERE notification_id = ?",
       [notification_id]
     );
     const fullNotification = rows[0];
-    // Check if the receiver is online
     const receiverSocketId = getReceiverSocketId(user_id);
     if (receiverSocketId && fullNotification) {
       io.to(receiverSocketId).emit("receiveNotification", fullNotification);

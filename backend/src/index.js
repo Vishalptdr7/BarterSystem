@@ -10,10 +10,9 @@ import cors from "cors";
 import { app, server } from "./lib/socket.js";
 import dbconnect from "./db/index.js";
 
-// Middleware Setup
 app.use(
   cors({
-    origin: "http://localhost:5173", // ✅ Frontend origin
+    origin: "http://localhost:5173", 
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
     
@@ -29,7 +28,6 @@ app.use(express.json());
 
 
 
-// Database Connection and Server Start
 server.listen(process.env.PORT, () => {
   console.log(`Socket Server is running on port ${process.env.PORT}`);
   dbconnect()

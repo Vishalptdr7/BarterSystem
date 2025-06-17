@@ -9,7 +9,6 @@ const AdminHomePage = () => {
   const [editingSkill, setEditingSkill] = useState(null);
   const [formData, setFormData] = useState({ skill_name: "", description: "" });
 
-  // Fetch skills from API
   useEffect(() => {
     fetchSkills();
   }, []);
@@ -19,7 +18,6 @@ const AdminHomePage = () => {
       const { data } = await axiosInstance.get("/skill");
       setSkills(data);
     } catch (error) {
-      toast.error("Failed to fetch skills.");
     }
   };
 
@@ -49,16 +47,13 @@ const AdminHomePage = () => {
     try {
       if (editingSkill) {
         await axiosInstance.put(`/skill/${editingSkill.skill_id}`, formData);
-        toast.success("Skill updated successfully!");
       } else {
         await axiosInstance.post("/skill", formData);
-        toast.success("Skill added successfully!");
       }
 
       fetchSkills();
       closeModal();
     } catch (error) {
-      toast.error("Failed to save skill.");
     }
   };
 
@@ -69,9 +64,7 @@ const AdminHomePage = () => {
     try {
       await axiosInstance.delete(`/skill/${skillId}`);
       setSkills(skills.filter((skill) => skill.skill_id !== skillId));
-      toast.success("Skill deleted successfully!");
     } catch (error) {
-      toast.error("Failed to delete skill.");
     }
   };
 

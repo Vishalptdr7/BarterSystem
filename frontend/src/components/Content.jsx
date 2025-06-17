@@ -166,7 +166,6 @@ export const Content = () => {
           </div>
         </div>
 
-        {/* Responsive Image at the Bottom for Mobile/Tablet */}
         <div className="mt-10 lg:hidden">
           <img
             className="object-cover w-full h-56 rounded shadow-lg sm:h-80"

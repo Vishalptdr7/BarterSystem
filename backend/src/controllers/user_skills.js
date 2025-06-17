@@ -2,13 +2,11 @@ import pool from "../db/db.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 const validProficiencyLevels = ["Beginner", "Intermediate", "Advanced"];
 
-// Get all user skills
 export const getAllUserSkills = asyncHandler(async (req, res) => {
   const [rows] = await pool.execute("SELECT * FROM user_skills");
   res.json(rows);
 });
 
-// Get user skills by user ID
 export const getUserSkillsByUserId = asyncHandler(async (req, res) => {
   const { user_id } = req.params;
 
@@ -25,7 +23,6 @@ export const getUserSkillsByUserId = asyncHandler(async (req, res) => {
 });
 
 
-// Add a new user skill
 export const addSkillToUser = asyncHandler(async (req, res) => {
   const { user_id, skill_id, proficiency_level } = req.body;
 
@@ -58,7 +55,6 @@ export const addSkillToUser = asyncHandler(async (req, res) => {
     });
 });
 
-// Update a user skill
 export const updateUserSkill = asyncHandler(async (req, res) => {
   const { user_skill_id } = req.params;
   const { proficiency_level } = req.body;
@@ -83,7 +79,6 @@ export const updateUserSkill = asyncHandler(async (req, res) => {
   res.json({ message: "User skill updated successfully" });
 });
 
-// Delete a user skill
 export const deleteUserSkill = asyncHandler(async (req, res) => {
   const { user_skill_id } = req.params;
   await pool.execute("DELETE FROM user_skills WHERE user_skill_id = ?", [

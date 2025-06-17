@@ -3,8 +3,6 @@ import { axiosInstance } from "../lib/axios.js";
 import { toast } from "react-hot-toast";
 import { Bell, CheckCircle, Trash2 } from "lucide-react";
 import { io } from "socket.io-client"; // ✅ Import socket.io
-import { data } from "react-router-dom";
-
 const Notification = ({ userId }) => {
   const [notifications, setNotifications] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -15,9 +13,15 @@ const Notification = ({ userId }) => {
     fetchNotifications();
   }, [userId]);
 
-  // ✅ Setup socket connection only once
   useEffect(() => {
     if (!userId) return;
+    if (!socketRef.current || !socketRef.current.connected) {
+      socketRef.current = io("http://localhost:8080", {
+        transports: ["websocket"],
+        withCredentials: true,
+        auth: { userId },
+      });
+    }
 
     socketRef.current = io("http://localhost:8080", {
       transports: ["websocket"],
@@ -30,12 +34,11 @@ const Notification = ({ userId }) => {
     socketRef.current.on("receiveNotification", (data) => {
       setNotifications((prev) => [data, ...prev]);
       fetchNotifications();
-      toast.success("🔔 New notification received");
     });
     
     
     return () => {
-      socketRef.current.disconnect(); // ✅ Cleanup on unmount
+      socketRef.current.disconnect();
     };
   }, [userId]);
 
@@ -46,7 +49,6 @@ const Notification = ({ userId }) => {
       setNotifications(data.notifications);
       setLoading(false);
     } catch (error) {
-      toast.error("Failed to fetch notifications.");
       setLoading(false);
     }
   };
@@ -59,9 +61,7 @@ const Notification = ({ userId }) => {
           n.notification_id === notificationId ? { ...n, is_read: true } : n
         )
       );
-      toast.success("Marked as read!");
     } catch (error) {
-      toast.error("Failed to update.");
     }
   };
 
@@ -71,9 +71,7 @@ const Notification = ({ userId }) => {
       setNotifications(
         notifications.filter((n) => n.notification_id !== notificationId)
       );
-      toast.success("Notification deleted.");
     } catch (error) {
-      toast.error("Failed to delete.");
     }
   };
 

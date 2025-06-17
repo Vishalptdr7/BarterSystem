@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { axiosInstance } from "../lib/axios.js";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
+import { useChatStore } from "./useChatStore.js";
 const BASE_URL =
   import.meta.env.MODE === "development" ? "http://localhost:8080" : "/";
 
@@ -14,14 +15,17 @@ export const useAuthStore = create((set, get) => ({
   onlineUsers: [],
   socket: null,
   userId: null,
-  setAuthUser: (userData) => set({ authUser: userData }),
+  setAuthUser: (userData) => {
+    set({ authUser: userData });
+    get().connectSocket(); // ✅ No need to pass userId, it uses authUser internally
+  },
+
   checkAuth: async () => {
     try {
       const res = await axiosInstance.get("/users/current");
       if (res.data.statusCode === 200) {
         set({ authUser: res.data.message, userId: res.data.message.user_id });
         get().connectSocket();
-        console.log("Auth user set:", res.data.message);
       } else {
         set({ authUser: null });
       }
@@ -76,7 +80,7 @@ export const useAuthStore = create((set, get) => ({
 
       toast.success("Logged in successfully");
       get().connectSocket();
-      console.log("login",res.data.data.user);
+      console.log("login", res.data.data.user);
       // window.location.reload();
     } catch (error) {
       toast.error(error.response?.data?.errors?.[0] || "Login failed");
@@ -118,29 +122,31 @@ export const useAuthStore = create((set, get) => ({
 
     if (!authUser || get().socket?.connected) return;
 
-    // Ensure correct WebSocket connection
     const socket = io(BASE_URL, {
-      auth: { userId: authUser?.user_id }, // Send userId for authentication
-      transports: ["websocket"], // Force WebSocket transport
-      withCredentials: true, // Ensure cookies and auth headers are sent
+      auth: { userId: authUser?.user_id },
+      transports: ["websocket"],
+      withCredentials: true,
     });
 
-    socket.on("connect", () =>
-      console.log("✅ WebSocket connected:", socket.id)
-    );
+    socket.on("connect", () => {
+      set({ socket }); // ✅ set socket only after connection
+      useChatStore.getState().subscribeToMessages(); // ✅ re-subscribe here
+    });
+
     socket.on("welcome", (msg) => console.log("📩 Message from server:", msg));
-    socket.on("disconnect", (reason) =>
-      console.warn("⚠️ WebSocket Disconnected:", reason)
-    );
+    
     socket.on("getOnlineUsers", (userIds) => {
       set({ onlineUsers: userIds });
     });
+    socket.on("disconnect", (reason) =>
+      console.warn("⚠️ WebSocket Disconnected:", reason)
+    );
+    
     socket.on("connect_error", (err) =>
       console.error("❌ WebSocket Error:", err)
     );
-
-    set({ socket });
   },
+  
 
   disconnectSocket: () => {
     if (get().socket?.connected) {

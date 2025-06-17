@@ -15,7 +15,7 @@ const Sidebar = () => {
 
   useEffect(() => {
     getUsers();
-  }, []);
+  }, [getUsers]);
 
   const filteredUsers = useMemo(
     () =>

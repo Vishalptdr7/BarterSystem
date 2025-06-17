@@ -103,11 +103,9 @@ const sendOTP = async (email, otp) => {
     throw new ApiError(500, "Failed to send OTP email");
   }
 };
-// Generate access token and refreshtoken
 
 const generateAccessTokenAndRefreshToken = async (userId) => {
   try {
-    // Fetch user from MySQL
     const [users] = await db.execute("SELECT * FROM users WHERE user_id = ?", [
       userId,
     ]);
@@ -119,7 +117,6 @@ const generateAccessTokenAndRefreshToken = async (userId) => {
 
     const user = users[0];
 
-    // Generate tokens
     const accessToken = jwt.sign(
       { id: user.user_id },
       process.env.ACCESS_TOKEN_SECRET,
@@ -132,7 +129,6 @@ const generateAccessTokenAndRefreshToken = async (userId) => {
       { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
     );
 
-    // Update refresh token in database
     await db.execute("UPDATE users SET refreshToken = ? WHERE user_id = ?", [
       refreshToken,
       user.user_id,
@@ -154,7 +150,6 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Check if user exists
     const [existingUser] = await db.execute(
       "SELECT * FROM users WHERE email = ?",
       [email]
@@ -167,13 +162,11 @@ export const register = async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000);
     const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
 
-    // Insert the user and OTP
     const [result] = await db.execute(
       "INSERT INTO users (name, email, password, otp, otp_expires) VALUES (?, ?, ?, ?, ?)",
       [name, email, hashedPassword, otp, otpExpires]
     );
 
-    // Send OTP email after successful DB insert
     await sendOTP(email, otp);
 
     return res.status(200).json({
@@ -210,7 +203,6 @@ export const resendOtp = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Generate and update OTP
     const otp = Math.floor(100000 + Math.random() * 900000);
     const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
 
@@ -273,12 +265,11 @@ export const verifyOTP = async (req, res) => {
       [email]
     );
 
-    console.log("user verified ", updatedUser);
 
     return res.status(200).json({
       success: true,
       message: "Email verified successfully",
-      user: updatedUser[0], // Return actual user data
+      user: updatedUser[0], 
     });
   } catch (error) {
     console.error("Error:", error);
@@ -292,7 +283,6 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validate that email is provided
     if (!email) {
       return res.status(400).json({
         statusCode: 400,
@@ -302,12 +292,10 @@ export const login = async (req, res) => {
       });
     }
 
-    // Query to find the user by email
     const [user] = await db.execute("SELECT * FROM users WHERE email = ?", [
       email,
     ]);
 
-    // Check if user exists
     if (user.length === 0) {
       return res.status(401).json({
         statusCode: 401,
@@ -319,7 +307,6 @@ export const login = async (req, res) => {
 
     const { user_id, name, password: hashedPassword, verified, role } = user[0];
 
-    // Check if the user's email is verified
     if (!verified) {
       return res.status(403).json({
         statusCode: 403,
@@ -329,7 +316,6 @@ export const login = async (req, res) => {
       });
     }
 
-    // Compare the provided password with the hashed password
     const isPasswordValid = await bcrypt.compare(password, hashedPassword);
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -340,17 +326,14 @@ export const login = async (req, res) => {
       });
     }
 
-    // Generate access and refresh tokens
     const { accessToken, refreshToken } =
       await generateAccessTokenAndRefreshToken(user_id);
 
-    // Update the refresh token in the database
     await db.execute(
       "UPDATE users SET refreshToken=?, accessToken=? WHERE user_id = ?",
       [refreshToken, accessToken, user_id]
     );
 
-    // Prepare the response object
     const {
       password: _,
       refreshToken: __,
@@ -359,13 +342,11 @@ export const login = async (req, res) => {
     } = user[0];
 
 
-    // Cookie options for tokens
     const options = {
       httpOnly: true,
-      secure: true, // Ensure this is set to true if you're using HTTPS
+      secure: true, 
     };
 
-    // Return the response with status 200, cookies, and formatted data
     return res
       .status(200)
       .cookie("accessToken", accessToken, options)
@@ -403,7 +384,6 @@ export const logout = asyncHandler(async (req, res) => {
         .json({ success: false, message: "Unauthorized request" });
     }
 
-    // Remove the refresh_token from the database
     const [result] = await pool.query(
       "UPDATE users SET refreshToken = NULL WHERE user_id = ?",
       [user_id]
@@ -416,7 +396,6 @@ export const logout = asyncHandler(async (req, res) => {
       });
     }
 
-    // Clear cookies
     return res
       .status(200)
       .clearCookie("accessToken", {
@@ -446,7 +425,6 @@ export const currentUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, req.user, "User Find Successfully"));
 });
 
-// ✅ Forgot Password (Send OTP for Reset)
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -516,14 +494,12 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 
   try {
-    // Verify the refresh token
     const decodedToken = jwt.verify(
       incomingRefreshToken,
       process.env.REFRESH_TOKEN_SECRET
     );
     const userId = decodedToken._id;
 
-    // Fetch user from MySQL
     const [users] = await db.execute("SELECT * FROM users WHERE id = ?", [
       userId,
     ]);
@@ -533,35 +509,29 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
 
     const user = users[0];
 
-    // Check if refresh token matches
     if (incomingRefreshToken !== user.refreshToken) {
       throw new ApiError(401, "Refresh Token has expired");
     }
 
-    // Generate new tokens
     const { accessToken, newrefreshToken } =
       await generateAccessTokenAndRefreshToken(user.id);
 
-    // Update new refresh token in the database
     await db.execute("UPDATE users SET refreshToken = ? WHERE id = ?", [
       newrefreshToken,
       user.id,
     ]);
 
-    // Remove sensitive data before returning user info
     const loggedUser = {
       id: user.id,
       name: user.name,
       email: user.email,
     };
 
-    // Set cookie options
     const options = {
       httpOnly: true,
       secure: true,
     };
 
-    // Send response
     return res
       .status(200)
       .cookie("accessToken", accessToken, options)
@@ -604,7 +574,7 @@ export const deleteUser = asyncHandler(async (req, res) => {
 
 export const editProfile = asyncHandler(async (req, res) => {
   try {
-    const user_id = req.user?.user_id; // Ensure this is properly extracted
+    const user_id = req.user?.user_id;
     if (!user_id) {
       return res
         .status(400)
@@ -612,28 +582,25 @@ export const editProfile = asyncHandler(async (req, res) => {
     }
 
     const { name, location, bio } = req.body;
-    let avtar = req.files?.profile_pic?.[0]?.path; // Check if file exists
+    let avtar = req.files?.profile_pic?.[0]?.path; 
 
     let profile_pic = null;
 
     if (avtar) {
-      profile_pic = await uploadfileOnCloudinary(avtar); // Upload the avatar to Cloudinary
+      profile_pic = await uploadfileOnCloudinary(avtar); 
       if (!profile_pic) {
         throw new ApiError(400, "Failed to upload avatar");
       }
     }
 
-    // Check if any field is provided
     if (!name && !location && !bio && !avtar) {
       return res
         .status(400)
         .json({ message: "At least one field must be provided for update" });
     }
 
-    // Prepare the profile_pic URL or null if not provided
     const profile_pic_url = profile_pic ? profile_pic.url : null;
 
-    // Prepare SQL query
     const query = `UPDATE users SET 
                       name = COALESCE(?, name), 
                       location = COALESCE(?, location), 
@@ -643,17 +610,15 @@ export const editProfile = asyncHandler(async (req, res) => {
                       WHERE user_id = ?`;
 
     const values = [
-      name ?? null, // Convert undefined to null
+      name ?? null,
       location ?? null,
       bio ?? null,
-      profile_pic_url, // Use the URL if the profile_pic was uploaded
-      user_id ?? null, // Ensure user_id is never undefined
+      profile_pic_url,
+      user_id ?? null, 
     ];
 
-    // Execute the SQL query
     const [result] = await db.execute(query, values);
 
-    // Check if the user was found and updated
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -665,9 +630,8 @@ export const editProfile = asyncHandler(async (req, res) => {
   }
 });
 
-// Get All Users with Skills
 export const getAllUsers = asyncHandler(async (req, res) => {
-  const loggedInUserId = req.user.user_id; // Get the logged-in user's ID
+  const loggedInUserId = req.user.user_id; 
 
   if (!loggedInUserId) {
     return res
@@ -709,12 +673,10 @@ export const getUserById = asyncHandler(async (req, res) => {
   try {
     const { user_id } = req.params;
 
-    // Validate user_id
     if (!user_id) {
       return res.status(400).json({ message: "User ID is required" });
     }
 
-    // Fetch user details
     const userQuery = `
       SELECT user_id, name, email, location, bio, role, profile_pic, created_at
       FROM users
@@ -729,7 +691,6 @@ export const getUserById = asyncHandler(async (req, res) => {
 
     const user = userResult[0];
 
-    // Fetch user's skills
     const skillsQuery = `
       SELECT us.user_skill_id, s.skill_id, s.skill_name, s.description, us.proficiency_level
       FROM user_skills us
@@ -739,7 +700,6 @@ export const getUserById = asyncHandler(async (req, res) => {
 
     const [skillsResult] = await db.execute(skillsQuery, [user_id]);
 
-    // Attach skills to user object
     user.skills = skillsResult || [];
 
     res.status(200).json(user);

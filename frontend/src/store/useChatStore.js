@@ -26,9 +26,14 @@ export const useChatStore = create((set, get) => ({
     set({ isMessagesLoading: true });
     try {
       const res = await axiosInstance.get(`/message/${userId}`);
-      console.log("New message response:", res.data);
-      set({ messages: res.data || [] });
+
+      const sortedMessages = (res.data || []).sort(
+        (a, b) => new Date(a.sent_at) - new Date(b.sent_at)
+      );
+
+      set({ messages: sortedMessages });
     } catch (error) {
+      console.error("Fetch message error:", error.response?.data);
       toast.error(error.response?.data?.message || "Failed to fetch messages");
     } finally {
       set({ isMessagesLoading: false });
@@ -37,7 +42,10 @@ export const useChatStore = create((set, get) => ({
 
   sendMessage: async ({ content, image }) => {
     const { selectedUser, messages } = get();
-    if (!selectedUser) return;
+    const authUser = useAuthStore.getState().authUser;
+    const socket = useAuthStore.getState().socket;
+
+    if (!selectedUser || !authUser) return;
 
     try {
       const formData = new FormData();
@@ -48,6 +56,7 @@ export const useChatStore = create((set, get) => ({
         formData.append("image", blob, "image.jpg");
       }
 
+      // ✅ Send to backend (save to DB)
       const res = await axiosInstance.post(
         `/message/${selectedUser.user_id}`,
         formData,
@@ -56,7 +65,20 @@ export const useChatStore = create((set, get) => ({
         }
       );
 
-      set({ messages: [...messages, res.data] });
+      const newMessage = res.data;
+
+      // ✅ Update local state
+      set({ messages: [...messages, newMessage] });
+
+      // ✅ Emit via socket for real-time delivery
+      if (socket) {
+        socket.emit("sendMessage", {
+          groupId: null,
+          message: newMessage,
+          sender: authUser.user_id,
+          receiver: selectedUser.user_id,
+        });
+      }
     } catch (error) {
       console.error("Error Response:", error.response?.data);
       toast.error(error.response?.data?.message || "Failed to send message");
@@ -97,16 +119,27 @@ export const useChatStore = create((set, get) => ({
         }));
       }
     });
-    
-
-    console.log("✅ Subscribed to receiveMessage");
   },
 
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
     if (!socket) return;
     socket.off("receiveMessage"); // ✅ Correct event name
-    console.log("🛑 Unsubscribed from receiveMessage...");
+  },
+
+  markMessagesAsRead: async (messageId) => {
+    const authUser = useAuthStore.getState().authUser;
+
+    if (!authUser?.user_id || !messageId) return;
+
+    try {
+      await axiosInstance.post("/message/mark_read", {
+        message_id: messageId,
+        user_id: authUser.user_id, // ✅ include user_id
+      });
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to mark as read");
+    }
   },
 
   setSelectedUser: (selectedUser) => set({ selectedUser }),

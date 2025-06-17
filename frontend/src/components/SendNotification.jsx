@@ -9,12 +9,11 @@ const SendNotification = ({ userId: propUserId }) => {
   const [messageType, setMessageType] = useState("connect");
   const [status, setStatus] = useState("");
   const { authUser } = useAuthStore();
-  const socketRef = useRef(null); // ✅ Ref to persist socket connection
+  const socketRef = useRef(null); 
 
   useEffect(() => {
     if (!authUser?.user_id) return;
 
-    // ✅ Connect once and reuse
     socketRef.current = io("http://localhost:8080", {
       transports: ["websocket"],
       withCredentials: true,
@@ -24,7 +23,7 @@ const SendNotification = ({ userId: propUserId }) => {
     });
 
     socketRef.current.on("receiveNotification", ({ message }) => {
-      alert(`🔔 New Notification: ${message}`);
+      // alert(`🔔 New Notification: ${message}`);
     });
 
     return () => {
@@ -61,7 +60,6 @@ const SendNotification = ({ userId: propUserId }) => {
 
       setStatus("✅ Notification Sent!");
 
-      // ✅ Reuse existing socket connection
       socketRef.current?.emit("sendNotification", {
         user_id: userId,
         sender_id: authUser.user_id,

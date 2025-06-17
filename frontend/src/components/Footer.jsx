@@ -1,8 +1,8 @@
-import { Link, useNavigate } from "react-router-dom"; // ✅ add useNavigate
+import { Link, useNavigate } from "react-router-dom";
 import { Facebook, Twitter, Linkedin, Instagram, Settings } from "lucide-react";
 
 const Footer = () => {
-  const navigate = useNavigate(); // ✅ initialize navigate
+  const navigate = useNavigate(); 
 
   return (
     <footer className="bg-gray-900 text-gray-300 py-10">

@@ -31,10 +31,9 @@ const UsersPage = () => {
       setUsers(data);
     } catch (error) {
       if (error.response?.status === 401) {
-        toast.error("Unauthorized. Please login again.");
         navigate("/login");
       } else {
-        toast.error("Failed to fetch users.");
+        console.log("");
       }
     } finally {
       setLoading(false);
@@ -49,7 +48,6 @@ const UsersPage = () => {
     if (!userId) return;
     setUserId(userId);
     navigate(`/notification`);
-    toast.success(`Swap request sent to user ${userId}`);
   };
 
   const handleChat = (user) => {
@@ -60,7 +58,6 @@ const UsersPage = () => {
   const handleViewProfile = (userId) => {
     if (!userId) return;
     navigate(`/profile/${userId}`);
-    toast.success(`Viewing profile of user ${userId}`);
   };
 
   if (loading) return <UsersPageSkeleton showChat={isChatOpen} />;

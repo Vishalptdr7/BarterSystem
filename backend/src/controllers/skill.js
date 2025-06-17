@@ -1,7 +1,6 @@
 import pool from "../db/db.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-// Create Skill
 export const createSkill = asyncHandler(async (req, res) => {
   const { skill_name, description } = req.body;
 
@@ -20,13 +19,11 @@ export const createSkill = asyncHandler(async (req, res) => {
   });
 });
 
-// Get All Skills
 export const getAllSkills = asyncHandler(async (req, res) => {
   const [rows] = await pool.query("SELECT * FROM skills");
   res.json(rows);
 });
 
-// Get Single Skill
 export const getSkillById = asyncHandler(async (req, res) => {
   const { skill_id } = req.params;
   const [rows] = await pool.query("SELECT * FROM skills WHERE skill_id = ?", [
@@ -40,7 +37,6 @@ export const getSkillById = asyncHandler(async (req, res) => {
   res.json(rows[0]);
 });
 
-// Update Skill
 export const updateSkill = asyncHandler(async (req, res) => {
   const { skill_id } = req.params;
   const { skill_name, description } = req.body;
@@ -59,7 +55,6 @@ export const updateSkill = asyncHandler(async (req, res) => {
   res.json({ message: "Skill updated successfully" });
 });
 
-// Delete Skill
 export const deleteSkill = asyncHandler(async (req, res) => {
   const { skill_id } = req.params;
   const [result] = await pool.query("DELETE FROM skills WHERE skill_id = ?", [

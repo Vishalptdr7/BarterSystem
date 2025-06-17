@@ -22,7 +22,6 @@ const UserProfile = ({onChat}) => {
       setUser(data);
       setLoading(false);
     } catch (error) {
-      toast.error("Failed to load user profile.");
       setLoading(false);
     }
   };
@@ -36,7 +35,6 @@ const UserProfile = ({onChat}) => {
   };
 
   const handleSwapSkill = () => {
-    toast.success(`Requesting skill swap with ${user?.name}`);
     // Implement skill swap functionality
   };
 

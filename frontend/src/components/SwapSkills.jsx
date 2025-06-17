@@ -14,7 +14,6 @@ const SwapSkills = () => {
       const { data } = await axiosInstance.get(`/swap/${authUser.user_id}`);
       setSwaps(data);
     } catch (error) {
-      toast.error("Failed to fetch swaps");
     } finally {
       setLoading(false);
     }
@@ -23,20 +22,16 @@ const SwapSkills = () => {
   const handleStatusUpdate = async (swap_id, status) => {
     try {
       await axiosInstance.patch(`/swap/${swap_id}/status`, { status });
-      toast.success(`Swap ${status} successfully`);
       fetchSwaps();
     } catch (error) {
-      toast.error("Failed to update status");
     }
   };
 
   const handleDeleteSwap = async (swap_id) => {
     try {
       await axiosInstance.delete(`/swap/${swap_id}`);
-      toast.success("Swap deleted successfully");
       fetchSwaps();
     } catch (error) {
-      toast.error("Failed to delete swap");
     }
   };
 

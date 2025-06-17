@@ -18,7 +18,6 @@ const dbconnect = async () => {
       console.log(`Database Connected: ${connection.threadId}`);
     });
 
-    // If you want to use a Promise-based approach, you can use the promise pool instead
     const promiseConnection = mysql
       .createPool({
         host: DB_HOST,
@@ -28,7 +27,6 @@ const dbconnect = async () => {
       })
       .promise();
 
-    // Returning the promise connection for future queries if needed
     return promiseConnection;
   } catch (error) {
     console.error(error);

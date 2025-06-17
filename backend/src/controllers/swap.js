@@ -1,7 +1,6 @@
 import pool from "../db/db.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-// Initiate Swap Request
 export const initiateSwap = asyncHandler(async (req, res) => {
   const { sender_id, receiver_id, sender_skill_id, receiver_skill_id, status } = req.body;
 
@@ -20,7 +19,6 @@ export const initiateSwap = asyncHandler(async (req, res) => {
   });
 });
 
-// Get All Swaps of a User
 export const getUserSwaps = asyncHandler(async (req, res) => {
   const { user_id } = req.params;
   const [rows] = await pool.execute(
@@ -30,7 +28,6 @@ export const getUserSwaps = asyncHandler(async (req, res) => {
   res.json(rows);
 });
 
-// Get Swap Details
 export const getSwapDetails = asyncHandler(async (req, res) => {
   const { swap_id } = req.params;
   console.log(swap_id)
@@ -41,7 +38,6 @@ export const getSwapDetails = asyncHandler(async (req, res) => {
   res.json(rows[0]);
 });
 
-// Update Swap Status
 export const updateSwapStatus = asyncHandler(async (req, res) => {
   const { swap_id } = req.params;
   const { status } = req.body;
@@ -60,7 +56,6 @@ export const updateSwapStatus = asyncHandler(async (req, res) => {
   res.json({ message: "Swap status updated successfully." });
 });
 
-// Delete Swap Request
 export const deleteSwap = asyncHandler(async (req, res) => {
   const { swap_id } = req.params;
   const [swapExists] = await pool.execute("SELECT * FROM swap WHERE swap_id = ?", [swap_id]);
